@@ -40,7 +40,22 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Azure managed-first architecture is defined and justified; Azure AI Agent Service
+  role is explicit.
+- Bicep coverage is defined for all target Azure resources, with deployment
+  reproducibility criteria.
+- Secret management flow uses Azure Key Vault only; no inline secrets in code or
+  configuration artifacts.
+- Microsoft Entra ID authentication and authorization boundaries are defined.
+- Input validation and AI input sanitization strategy are defined.
+- DAST URL ownership verification process is defined before active scanning.
+- Multi-agent role separation is defined; core review logic does not rely on a
+  single monolithic prompt.
+- Finding evidence model includes ASVS or equivalent normative references and
+  cross-checking with tool outputs.
+- UX targets include 3-minute judge comprehension and streaming progress updates.
+- Spec-kit phase order (spec -> plan -> tasks -> implement) and per-phase commit
+  checkpoints are planned.
 
 ## Project Structure
 

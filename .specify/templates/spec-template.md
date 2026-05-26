@@ -78,6 +78,22 @@
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
 
+## Security and Safety Constraints *(mandatory)*
+
+- Authentication MUST use Microsoft Entra ID for all human-facing access paths.
+- User input validation rules MUST be defined for every external input surface.
+- AI-bound payload sanitization rules MUST be defined for prompts and tool inputs.
+- DAST scanning flows MUST define URL ownership verification before scan execution.
+- Secret handling MUST use Azure Key Vault references only.
+
+## AI and Evidence Requirements *(mandatory)*
+
+- Feature behavior MUST define collaborating agent roles; single-prompt-only core
+  review logic is not allowed.
+- Each security finding MUST define evidence fields and normative mapping
+  requirements (for example ASVS identifiers).
+- LLM outputs MUST define verification steps against tool execution results.
+
 ## Requirements *(mandatory)*
 
 <!--
@@ -116,6 +132,9 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-005**: Judges can explain the feature value within 3 minutes during demo.
+- **SC-006**: Review processing progress is streamed to users with meaningful
+  intermediate status updates.
 
 ## Assumptions
 
