@@ -49,11 +49,11 @@ def main():
 
         has_secret, secret_type = scan_file(filepath)
         if has_secret:
-            print(f"⚠️  Secret detected in {filepath}: {secret_type}")
+            print(f"[WARNING] Secret detected in {filepath}: {secret_type}")
             found_secrets = True
 
     if found_secrets:
-        print("\n❌ Commit blocked: Potential secrets detected")
+        print("\n[ERROR] Commit blocked: Potential secrets detected")
         return 1
 
     return 0
