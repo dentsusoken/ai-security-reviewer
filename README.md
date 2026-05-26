@@ -21,6 +21,12 @@ AI Security Reviewer is a web service that automates security reviews for web ap
 - Task list: `specs/001-ai-security-reviewer-spec/tasks.md`
 - Project constitution: `.specify/memory/constitution.md`
 
+## Setup & Development
+
+- Development setup: `docs/setup/pre-commit.md` - Configure pre-commit hooks for secret detection and code quality
+- Frontend setup: `frontend/README.md`
+- Backend setup: `backend/README.md`
+
 ## Mockup
 
 - UI mockup: `docs/mockup/docs/mockup/index.html`

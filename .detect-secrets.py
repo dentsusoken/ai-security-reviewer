@@ -21,6 +21,7 @@ EXCLUDE_PATTERNS = [
     "dist",
     "build",
     "__pycache__",
+    "docs",  # Exclude docs directory (includes examples)
 ]
 
 def is_excluded(path):
