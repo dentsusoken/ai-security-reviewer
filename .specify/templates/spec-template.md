@@ -85,6 +85,8 @@
 - AI-bound payload sanitization rules MUST be defined for prompts and tool inputs.
 - DAST scanning flows MUST define URL ownership verification before scan execution.
 - Secret handling MUST use Azure Key Vault references only.
+- Sensitive artifacts (credentials, customer data, non-public source code) MUST be
+  classified and excluded from repository commits.
 
 ## AI and Evidence Requirements *(mandatory)*
 

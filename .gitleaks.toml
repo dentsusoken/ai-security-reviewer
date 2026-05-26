@@ -1,0 +1,10 @@
+[allowlist]
+paths = [
+  "docs/mockup",
+]
+regexes = [
+  "test|example|dummy",
+]
+
+[extend-ignore-sha]
+# Ignore certain commits

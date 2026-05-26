@@ -56,6 +56,9 @@
 - UX targets include 3-minute judge comprehension and streaming progress updates.
 - Spec-kit phase order (spec -> plan -> tasks -> implement) and per-phase commit
   checkpoints are planned.
+- Repository governance includes MIT License public availability through 2026-06-18.
+- Commit hygiene controls prevent credentials, customer data, and non-public external
+  source code from being committed.
 
 ## Project Structure
 

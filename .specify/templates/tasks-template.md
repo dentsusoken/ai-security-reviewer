@@ -77,6 +77,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T015 Define DAST target ownership verification workflow
 - [ ] T016 Define multi-agent role boundaries and orchestration contracts
 - [ ] T017 Define evidence schema with ASVS (or equivalent) mapping fields
+- [ ] T018 [P] Configure secret and sensitive-data pre-commit checks
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -92,19 +93,19 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T018 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T019 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T020 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T021 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T022 [US1] Implement [Service] in src/services/[service].py (depends on T020, T021)
-- [ ] T023 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T024 [US1] Add validation and error handling
-- [ ] T025 [US1] Add logging for user story 1 operations
-- [ ] T026 [US1] Implement streaming progress updates for long-running review flows
-- [ ] T027 [US1] Attach evidence references (ASVS or equivalent) to findings
+- [ ] T021 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T022 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T023 [US1] Implement [Service] in src/services/[service].py (depends on T021, T022)
+- [ ] T024 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T025 [US1] Add validation and error handling
+- [ ] T026 [US1] Add logging for user story 1 operations
+- [ ] T027 [US1] Implement streaming progress updates for long-running review flows
+- [ ] T028 [US1] Attach evidence references (ASVS or equivalent) to findings
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -118,15 +119,15 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T028 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T029 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T029 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T030 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 2
 
-- [ ] T030 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T031 [US2] Implement [Service] in src/services/[service].py
-- [ ] T032 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T033 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T031 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T032 [US2] Implement [Service] in src/services/[service].py
+- [ ] T033 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T034 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -140,14 +141,14 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T034 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T035 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T035 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T036 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 3
 
-- [ ] T036 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T037 [US3] Implement [Service] in src/services/[service].py
-- [ ] T038 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T037 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T038 [US3] Implement [Service] in src/services/[service].py
+- [ ] T039 [US3] Implement [endpoint/feature] in src/[location]/[file].py
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -169,6 +170,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Run quickstart.md validation
 - [ ] TXXX Verify dark and light themes across all supported screens
 - [ ] TXXX Validate 3-minute judge demo script against implemented flow
+- [ ] TXXX Validate repository does not include credentials, customer data, or non-public source
 
 ---
 
