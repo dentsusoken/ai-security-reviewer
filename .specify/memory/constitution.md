@@ -1,15 +1,10 @@
 <!--
 Sync Impact Report
-Version change: template-draft -> 1.0.0
+Version change: 1.0.0 -> 1.1.0 (MINOR: mandatory constraints added)
 Modified principles:
-- template principle 1 -> I. Azure-Native Managed-First Technical Foundation
-- template principle 2 -> II. Secure-by-Default Service and Data Protection
-- template principle 3 -> III. Judge-Centric Demo UX
-- template principle 4 -> IV. Evidence-Backed Multi-Agent Intelligence
-- template principle 5 -> V. Spec-Driven Delivery Discipline
+- None
 Added sections:
-- Delivery Constraints and Scope Boundaries
-- Execution and Quality Gates
+- None
 Removed sections:
 - None
 Templates requiring updates:
@@ -68,6 +63,11 @@ Rationale: strict phase gates preserve quality, auditability, and team alignment
 	perspectives (ASVS, SAST, DAST), and three cooperating AI agents.
 - Existing BI tooling in React/JavaScript MAY be used as demonstration input, but
 	integration boundaries MUST be documented in feature specifications.
+- This repository MUST be publicly available on GitHub under the MIT License and
+	MUST remain public through the hackathon review period (until 2026-06-18).
+- Credentials (including API keys, connection strings, and tokens), customer data,
+	and non-public source code from existing BI tools MUST NOT be committed. Demo
+	inputs MUST use sanitized data or synthetic data only.
 
 ## Execution and Quality Gates
 
@@ -80,6 +80,8 @@ Rationale: strict phase gates preserve quality, auditability, and team alignment
 	evidence pipeline implementation, and phase-level Git commits.
 - Pull requests MUST include a constitution compliance statement and identify any
 	approved exceptions.
+- Pull requests MUST confirm no credentials, customer data, or non-public third-party
+	source code are introduced.
 
 ## Governance
 
@@ -102,4 +104,4 @@ Compliance review expectations:
 - Non-compliance MUST be resolved before merge or tracked as an explicit,
 	time-bounded exception.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-26 | **Last Amended**: 2026-05-26
+**Version**: 1.1.0 | **Ratified**: 2026-05-26 | **Last Amended**: 2026-05-26
