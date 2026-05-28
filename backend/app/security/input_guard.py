@@ -11,8 +11,9 @@ This module provides protection against:
 import re
 from typing import Any
 
-from fastapi import HTTPException, Request
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 # Maximum request body size (10MB)
 MAX_BODY_SIZE = 10 * 1024 * 1024
@@ -141,18 +142,21 @@ class InputGuardMiddleware(BaseHTTPMiddleware):
         # Check content length
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > MAX_BODY_SIZE:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=413,
-                detail=f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes.",
+                content={
+                    "error": "Request body too large",
+                    "detail": f"Maximum size is {MAX_BODY_SIZE} bytes.",
+                },
             )
 
         # Validate query parameters
         for key, value in request.query_params.items():
             is_threat, threat_type = detect_threats(value)
             if is_threat:
-                raise HTTPException(
+                return JSONResponse(
                     status_code=400,
-                    detail={
+                    content={
                         "error": "Input validation failed",
                         "threat_type": threat_type,
                         "location": f"query.{key}",
@@ -164,9 +168,9 @@ class InputGuardMiddleware(BaseHTTPMiddleware):
             if isinstance(value, str):
                 is_threat, threat_type = detect_threats(value)
                 if is_threat:
-                    raise HTTPException(
+                    return JSONResponse(
                         status_code=400,
-                        detail={
+                        content={
                             "error": "Input validation failed",
                             "threat_type": threat_type,
                             "location": f"path.{key}",
