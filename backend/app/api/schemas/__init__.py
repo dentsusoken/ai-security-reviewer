@@ -4,9 +4,9 @@ from app.api.schemas.common import InputType, Perspective, ReviewDepth, Severity
 from app.api.schemas.finding import (
     Finding,
     FindingDetail,
+    FindingsResponse,
     FindingStatusUpdate,
     FindingSummary,
-    FindingsResponse,
 )
 from app.api.schemas.review import (
     AgentState,

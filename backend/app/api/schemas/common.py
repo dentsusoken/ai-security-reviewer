@@ -1,9 +1,9 @@
 """Common schema definitions."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class InputType(str, Enum):
+class InputType(StrEnum):
     """Review input type."""
 
     GITHUB = "github"
@@ -11,7 +11,7 @@ class InputType(str, Enum):
     URL = "url"
 
 
-class Perspective(str, Enum):
+class Perspective(StrEnum):
     """Review perspective type."""
 
     ASVS = "asvs"
@@ -19,7 +19,7 @@ class Perspective(str, Enum):
     DAST = "dast"
 
 
-class ReviewDepth(str, Enum):
+class ReviewDepth(StrEnum):
     """Review depth level."""
 
     QUICK = "quick"
@@ -27,7 +27,7 @@ class ReviewDepth(str, Enum):
     DETAILED = "detailed"
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Finding severity level."""
 
     CRITICAL = "critical"
@@ -36,7 +36,7 @@ class Severity(str, Enum):
     LOW = "low"
 
 
-class ReviewStatus(str, Enum):
+class ReviewStatus(StrEnum):
     """Review session status."""
 
     QUEUED = "queued"
@@ -46,14 +46,14 @@ class ReviewStatus(str, Enum):
     CANCELED = "canceled"
 
 
-class ResolutionState(str, Enum):
+class ResolutionState(StrEnum):
     """Finding resolution state."""
 
     OPEN = "open"
     RESOLVED = "resolved"
 
 
-class AgentName(str, Enum):
+class AgentName(StrEnum):
     """Agent name constants."""
 
     SPEC_COMPLIANCE = "SpecComplianceAgent"
@@ -61,7 +61,7 @@ class AgentName(str, Enum):
     REPORT_SYNTHESIZER = "ReportSynthesizerAgent"
 
 
-class AgentStatus(str, Enum):
+class AgentStatus(StrEnum):
     """Agent execution status."""
 
     WAITING = "waiting"

@@ -183,7 +183,8 @@ export function ProgressPage() {
   }, []);
 
   // Handle completion
-  const handleCompleted = useCallback((_data: BackendCompletedEvent) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleCompleted = useCallback((_data?: BackendCompletedEvent) => {
     setIsCompleted(true);
     setOverallProgress(100);
 
@@ -233,6 +234,7 @@ export function ProgressPage() {
 
   // Connect to SSE
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Initial log message for SSE connection
     handleLog('SSE接続を開始...');
 
     const cleanup = connectReviewEvents(reviewId, {

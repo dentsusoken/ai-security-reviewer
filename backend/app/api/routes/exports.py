@@ -5,8 +5,8 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
-from app.data.mock_data import DEMO_REVIEW_ID, MOCK_REVIEWS, MOCK_FINDINGS_LIST
-from app.services.excel_export_service import create_excel_report, format_duration, format_datetime
+from app.data.mock_data import DEMO_REVIEW_ID, MOCK_FINDINGS_LIST, MOCK_REVIEWS
+from app.services.excel_export_service import create_excel_report, format_datetime, format_duration
 from app.services.review_state import get_review_manager
 
 router = APIRouter()
@@ -33,7 +33,11 @@ def _prepare_review_data(review_state) -> dict:
         # Default perspective scores
         score = result.overall_score if result else 70
         perspective_scores = [
-            {"name": "Spec Compliance (ASVS)", "score": score, "rating": "B" if score >= 60 else "C"},
+            {
+                "name": "Spec Compliance (ASVS)",
+                "score": score,
+                "rating": "B" if score >= 60 else "C",
+            },
         ]
 
     return {
@@ -103,7 +107,15 @@ def _get_mock_review_data(review_id: str) -> tuple[dict, list[dict]]:
         "medium_count": score_summary.get("medium", 2),
         "low_count": score_summary.get("low", 1),
         "perspective_scores": [
-            {"name": ps.get("category", "Unknown"), "score": ps.get("percentage", 0), "rating": "A" if ps.get("percentage", 0) >= 80 else "B" if ps.get("percentage", 0) >= 60 else "C"}
+            {
+                "name": ps.get("category", "Unknown"),
+                "score": ps.get("percentage", 0),
+                "rating": "A"
+                if ps.get("percentage", 0) >= 80
+                else "B"
+                if ps.get("percentage", 0) >= 60
+                else "C",
+            }
             for ps in mock_review.get("perspectiveScores", [])
         ],
     }
@@ -112,24 +124,29 @@ def _get_mock_review_data(review_id: str) -> tuple[dict, list[dict]]:
     findings = []
 
     for idx, f in enumerate(MOCK_FINDINGS_LIST, start=1):
-        findings.append({
-            "id": f.get("id", f"F{idx:03d}"),
-            "title": f.get("title", "Unknown Issue"),
-            "severity": f.get("severity", "medium"),
-            "location": {"file": f.get("filePath", "-"), "line": f.get("lineStart", 0)},
-            "asvs_id": ", ".join(f.get("asvsRequirementIds", [])) or "-",
-            "cwe_id": ", ".join(f.get("cweIds", [])) or "-",
-            "source_agent": "SpecComplianceAgent",
-            "status": "open",
-            "description": f"Security issue detected: {f.get('title', 'Unknown')}",
-            "explanation": f"This finding relates to security best practices.",
-            "vulnerable_code": "",
-            "ai_explanation": f"This finding relates to OWASP ASVS requirements and CWE standards.",
-            "remediation": "Apply secure coding practices and follow OWASP guidelines.",
-            "references": [
-                {"title": "OWASP ASVS", "url": "https://owasp.org/www-project-application-security-verification-standard/"},
-            ],
-        })
+        findings.append(
+            {
+                "id": f.get("id", f"F{idx:03d}"),
+                "title": f.get("title", "Unknown Issue"),
+                "severity": f.get("severity", "medium"),
+                "location": {"file": f.get("filePath", "-"), "line": f.get("lineStart", 0)},
+                "asvs_id": ", ".join(f.get("asvsRequirementIds", [])) or "-",
+                "cwe_id": ", ".join(f.get("cweIds", [])) or "-",
+                "source_agent": "SpecComplianceAgent",
+                "status": "open",
+                "description": f"Security issue detected: {f.get('title', 'Unknown')}",
+                "explanation": "This finding relates to security best practices.",
+                "vulnerable_code": "",
+                "ai_explanation": "This finding relates to OWASP ASVS requirements and CWE standards.",
+                "remediation": "Apply secure coding practices and follow OWASP guidelines.",
+                "references": [
+                    {
+                        "title": "OWASP ASVS",
+                        "url": "https://owasp.org/www-project-application-security-verification-standard/",
+                    },
+                ],
+            }
+        )
 
     return review_data, findings
 
@@ -154,10 +171,7 @@ async def export_review_to_excel(review_id: str) -> Response:
         # Use mock data for demo
         review_data, findings = _get_mock_review_data(review_id)
     else:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Review not found: {review_id}"
-        )
+        raise HTTPException(status_code=404, detail=f"Review not found: {review_id}")
 
     # Generate Excel file
     excel_bytes = create_excel_report(review_data, findings)
@@ -170,7 +184,5 @@ async def export_review_to_excel(review_id: str) -> Response:
     return Response(
         content=excel_bytes,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"'
-        }
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

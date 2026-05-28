@@ -1,7 +1,6 @@
 """History endpoint."""
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Query
 
@@ -11,12 +10,12 @@ from app.services.review_state import get_review_manager
 router = APIRouter()
 
 
-def parse_period_filter(period: Optional[str]) -> Optional[datetime]:
+def parse_period_filter(period: str | None) -> datetime | None:
     """Parse period filter to datetime cutoff."""
     if not period:
         return None
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     period_map = {
         "today": timedelta(days=1),
@@ -31,7 +30,7 @@ def parse_period_filter(period: Optional[str]) -> Optional[datetime]:
     return None
 
 
-def parse_score_range(score_range: Optional[str]) -> tuple[Optional[int], Optional[int]]:
+def parse_score_range(score_range: str | None) -> tuple[int | None, int | None]:
     """Parse score range filter to min/max values."""
     if not score_range:
         return None, None
@@ -47,13 +46,13 @@ def parse_score_range(score_range: Optional[str]) -> tuple[Optional[int], Option
 
 
 @router.get("/history", response_model=HistoryResponse)
-def get_history(
-    query: Optional[str] = Query(default=None, description="Search by repo name"),
-    period: Optional[str] = Query(default=None, description="Time period filter"),
-    score_range: Optional[str] = Query(
+def get_history(  # noqa: C901
+    query: str | None = Query(default=None, description="Search by repo name"),
+    period: str | None = Query(default=None, description="Time period filter"),
+    score_range: str | None = Query(
         default=None, alias="scoreRange", description="Score range filter"
     ),
-    perspective: Optional[str] = Query(default=None, description="Perspective filter"),
+    perspective: str | None = Query(default=None, description="Perspective filter"),
 ) -> HistoryResponse:
     """Get review history with optional filters.
 
@@ -84,7 +83,7 @@ def get_history(
             # Make state.completed_at timezone-aware if needed
             completed_at = state.completed_at
             if completed_at.tzinfo is None:
-                completed_at = completed_at.replace(tzinfo=timezone.utc)
+                completed_at = completed_at.replace(tzinfo=UTC)
             if completed_at < period_cutoff:
                 continue
 

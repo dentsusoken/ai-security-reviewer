@@ -2,26 +2,24 @@
 
 from datetime import datetime
 from io import BytesIO
-from typing import Any
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-
 # Severity colors
 SEVERITY_COLORS = {
     "critical": "FF0000",  # Red
-    "high": "FF8C00",      # Orange
-    "medium": "FFD700",    # Yellow/Gold
-    "low": "32CD32",       # Green
+    "high": "FF8C00",  # Orange
+    "medium": "FFD700",  # Yellow/Gold
+    "low": "32CD32",  # Green
 }
 
 SEVERITY_BG_COLORS = {
     "critical": "FFCCCC",  # Light red
-    "high": "FFE4CC",      # Light orange
-    "medium": "FFFFCC",    # Light yellow
-    "low": "CCFFCC",       # Light green
+    "high": "FFE4CC",  # Light orange
+    "medium": "FFFFCC",  # Light yellow
+    "low": "CCFFCC",  # Light green
 }
 
 # Style constants
@@ -143,7 +141,7 @@ def create_summary_sheet(wb: Workbook, review_data: dict) -> None:
         cell_label.fill = PatternFill(
             start_color=SEVERITY_BG_COLORS[severity_key],
             end_color=SEVERITY_BG_COLORS[severity_key],
-            fill_type="solid"
+            fill_type="solid",
         )
         cell_label.border = THIN_BORDER
 
@@ -182,8 +180,15 @@ def create_findings_list_sheet(wb: Workbook, findings: list[dict]) -> None:
 
     # Headers
     headers = [
-        "ID", "重要度", "タイトル", "ファイルパス", "行番号",
-        "ASVS要件", "CWE ID", "検出元エージェント", "対応状況"
+        "ID",
+        "重要度",
+        "タイトル",
+        "ファイルパス",
+        "行番号",
+        "ASVS要件",
+        "CWE ID",
+        "検出元エージェント",
+        "対応状況",
     ]
 
     for col, header in enumerate(headers, start=1):
@@ -196,7 +201,7 @@ def create_findings_list_sheet(wb: Workbook, findings: list[dict]) -> None:
     # Data rows
     for row_idx, finding in enumerate(findings, start=2):
         # ID
-        cell_id = ws.cell(row=row_idx, column=1, value=finding.get("id", f"F{row_idx-1}"))
+        cell_id = ws.cell(row=row_idx, column=1, value=finding.get("id", f"F{row_idx - 1}"))
         cell_id.border = THIN_BORDER
 
         # Severity with color
@@ -207,7 +212,7 @@ def create_findings_list_sheet(wb: Workbook, findings: list[dict]) -> None:
             cell_severity.fill = PatternFill(
                 start_color=SEVERITY_BG_COLORS[severity],
                 end_color=SEVERITY_BG_COLORS[severity],
-                fill_type="solid"
+                fill_type="solid",
             )
         cell_severity.border = THIN_BORDER
         cell_severity.alignment = Alignment(horizontal="center")
@@ -287,7 +292,7 @@ def create_details_sheet(wb: Workbook, findings: list[dict]) -> None:
             cell_severity.fill = PatternFill(
                 start_color=SEVERITY_BG_COLORS[severity_key],
                 end_color=SEVERITY_BG_COLORS[severity_key],
-                fill_type="solid"
+                fill_type="solid",
             )
         current_row += 1
 

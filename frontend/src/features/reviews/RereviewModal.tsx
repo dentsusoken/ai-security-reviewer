@@ -18,6 +18,7 @@ export function RereviewModal({ open, onClose, target, onExecute }: RereviewModa
 
   useEffect(() => {
     if (!target) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing derived state from prop
     setAspects({
       asvs: target.aspects.includes('asvs'),
       sast: target.aspects.includes('sast'),

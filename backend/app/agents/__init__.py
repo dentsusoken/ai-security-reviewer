@@ -1,8 +1,8 @@
 """Agents package."""
 
 from app.agents.spec_compliance_agent import (
-    SpecComplianceAgent,
     ReviewResult,
+    SpecComplianceAgent,
     get_spec_compliance_agent,
 )
 

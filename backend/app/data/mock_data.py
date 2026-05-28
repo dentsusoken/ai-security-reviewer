@@ -3,7 +3,7 @@
 Data values match the mockup HTML for consistency.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 # Demo review session IDs
 DEMO_REVIEW_ID = "rs_demo_001"
@@ -11,7 +11,7 @@ DEMO_REVIEW_ID_2 = "rs_demo_002"
 DEMO_REVIEW_ID_3 = "rs_demo_003"
 
 # Demo timestamps
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 # ============================================================
 # Review Sessions
@@ -357,4 +357,4 @@ MOCK_DASHBOARD_STATS = {
 # ============================================================
 
 # Track resolution states for findings
-finding_states: dict[str, str] = {f_id: "open" for f_id in MOCK_FINDINGS}
+finding_states: dict[str, str] = dict.fromkeys(MOCK_FINDINGS, "open")

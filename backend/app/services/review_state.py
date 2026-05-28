@@ -3,7 +3,7 @@
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from app.agents.spec_compliance_agent import ReviewResult
 
@@ -15,24 +15,24 @@ class ReviewState:
     id: str
     status: str  # queued, running, completed, error
     repo_url: str
-    branch: Optional[str] = None
+    branch: str | None = None
     input_type: str = "github"
     perspectives: list[str] = field(default_factory=lambda: ["spec_compliance"])
     depth: str = "standard"
 
     # Timing
     created_at: datetime = field(default_factory=datetime.now)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    duration_ms: Optional[int] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
 
     # Progress
     progress_percent: int = 0
     progress_message: str = ""
 
     # Results
-    result: Optional[ReviewResult] = None
-    error: Optional[str] = None
+    result: ReviewResult | None = None
+    error: str | None = None
 
 
 class ReviewStateManager:
@@ -47,8 +47,8 @@ class ReviewStateManager:
         self,
         review_id: str,
         repo_url: str,
-        branch: Optional[str] = None,
-        perspectives: Optional[list[str]] = None,
+        branch: str | None = None,
+        perspectives: list[str] | None = None,
         depth: str = "standard",
     ) -> ReviewState:
         """Create a new review state."""
@@ -65,7 +65,7 @@ class ReviewStateManager:
             self._sse_queues[review_id] = asyncio.Queue()
             return state
 
-    async def get_review(self, review_id: str) -> Optional[ReviewState]:
+    async def get_review(self, review_id: str) -> ReviewState | None:
         """Get review state by ID."""
         return self._reviews.get(review_id)
 
@@ -73,7 +73,7 @@ class ReviewStateManager:
         self,
         review_id: str,
         **updates: Any,
-    ) -> Optional[ReviewState]:
+    ) -> ReviewState | None:
         """Update review state fields."""
         async with self._lock:
             state = self._reviews.get(review_id)
@@ -87,7 +87,7 @@ class ReviewStateManager:
         self,
         review_id: str,
         result: ReviewResult,
-    ) -> Optional[ReviewState]:
+    ) -> ReviewState | None:
         """Set review result and mark as completed."""
         async with self._lock:
             state = self._reviews.get(review_id)
@@ -107,7 +107,7 @@ class ReviewStateManager:
         self,
         review_id: str,
         error: str,
-    ) -> Optional[ReviewState]:
+    ) -> ReviewState | None:
         """Set review error and mark as failed."""
         async with self._lock:
             state = self._reviews.get(review_id)
@@ -117,7 +117,7 @@ class ReviewStateManager:
                 state.completed_at = datetime.now()
             return state
 
-    def get_sse_queue(self, review_id: str) -> Optional[asyncio.Queue]:
+    def get_sse_queue(self, review_id: str) -> asyncio.Queue | None:
         """Get SSE event queue for a review."""
         return self._sse_queues.get(review_id)
 
@@ -130,10 +130,12 @@ class ReviewStateManager:
         """Send an SSE event to the queue."""
         queue = self._sse_queues.get(review_id)
         if queue:
-            await queue.put({
-                "event": event_type,
-                "data": data,
-            })
+            await queue.put(
+                {
+                    "event": event_type,
+                    "data": data,
+                }
+            )
 
     async def close_sse_queue(self, review_id: str) -> None:
         """Close SSE queue for a review."""
@@ -148,8 +150,7 @@ class ReviewStateManager:
     def get_completed_reviews(self) -> list[ReviewState]:
         """Get all completed reviews, sorted by completion time (newest first)."""
         completed = [
-            r for r in self._reviews.values()
-            if r.status == "completed" and r.result is not None
+            r for r in self._reviews.values() if r.status == "completed" and r.result is not None
         ]
         # Sort by completed_at descending (newest first)
         return sorted(
@@ -216,14 +217,16 @@ class ReviewStateManager:
             "branch": state.branch or "main",
             "inputType": state.input_type,
             "perspectives": state.perspectives,
-            "startedAt": state.started_at.isoformat() if state.started_at else state.created_at.isoformat(),
+            "startedAt": state.started_at.isoformat()
+            if state.started_at
+            else state.created_at.isoformat(),
             "durationMs": state.duration_ms or 0,
             "scoreSummary": score_summary,
         }
 
 
 # Singleton instance
-_manager: Optional[ReviewStateManager] = None
+_manager: ReviewStateManager | None = None
 
 
 def get_review_manager() -> ReviewStateManager:
