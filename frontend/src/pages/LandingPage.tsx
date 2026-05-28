@@ -1,8 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 import { FileSearch, Bot, ScanLine, Radar, ArrowRight } from 'lucide-react';
+import { useAuth } from '../features/auth';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { login, isLoading } = useAuth();
+
+  const handleSignIn = async () => {
+    try {
+      await login();
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      // In dev mode, login succeeds immediately
+    }
+  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
@@ -36,8 +48,9 @@ export function LandingPage() {
 
         {/* Sign In Button */}
         <button
-          onClick={() => navigate('/dashboard')}
-          className="btn-gradient px-8 py-4 rounded-xl font-semibold text-base inline-flex items-center gap-3 mb-12 hover:scale-105 transition-transform"
+          onClick={handleSignIn}
+          disabled={isLoading}
+          className="btn-gradient px-8 py-4 rounded-xl font-semibold text-base inline-flex items-center gap-3 mb-12 hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg width="20" height="20" viewBox="0 0 21 21">
             <rect x="1" y="1" width="9" height="9" fill="#f25022" />
@@ -45,8 +58,8 @@ export function LandingPage() {
             <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
             <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
           </svg>
-          Microsoftでサインイン
-          <ArrowRight className="w-4 h-4" />
+          {isLoading ? 'サインイン中...' : 'Microsoftでサインイン'}
+          {!isLoading && <ArrowRight className="w-4 h-4" />}
         </button>
 
         {/* Feature Cards */}
