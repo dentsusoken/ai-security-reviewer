@@ -3,9 +3,7 @@
  */
 
 import { API_BASE_URL } from './client';
-import type {
-  AgentStatus,
-} from '../../types/api';
+import type { AgentStatus } from '../../types/api';
 
 // Backend event data types (actual format from backend)
 export interface BackendProgressEvent {
@@ -50,10 +48,7 @@ export interface SSECallbacks {
  * Connect to SSE stream for review progress
  * Returns a function to close the connection
  */
-export function connectReviewEvents(
-  reviewSessionId: string,
-  callbacks: SSECallbacks
-): () => void {
+export function connectReviewEvents(reviewSessionId: string, callbacks: SSECallbacks): () => void {
   const url = `${API_BASE_URL}/api/reviews/${reviewSessionId}/events`;
   const eventSource = new EventSource(url);
 
@@ -93,7 +88,7 @@ export function connectReviewEvents(
     'analyzing_code',
   ];
 
-  fetchingEventTypes.forEach(eventType => {
+  fetchingEventTypes.forEach((eventType) => {
     eventSource.addEventListener(eventType, (event) => {
       try {
         const data = JSON.parse(event.data) as BackendFetchingEvent;
@@ -112,7 +107,9 @@ export function connectReviewEvents(
     try {
       const data = JSON.parse(event.data) as BackendCompletedEvent;
       callbacks.onCompleted?.(data);
-      callbacks.onLog?.(`✅ レビュー完了: スコア ${data.overall_score}, ${data.findings_count} 件の指摘`);
+      callbacks.onLog?.(
+        `✅ レビュー完了: スコア ${data.overall_score}, ${data.findings_count} 件の指摘`
+      );
       eventSource.close();
     } catch (error) {
       console.error('Failed to parse completed event:', error);

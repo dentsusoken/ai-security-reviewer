@@ -70,7 +70,12 @@ export function HistoryPage() {
         setError(null);
 
         // Build filter params for API
-        const apiFilters: { period?: string; minScore?: number; maxScore?: number; perspective?: string } = {};
+        const apiFilters: {
+          period?: string;
+          minScore?: number;
+          maxScore?: number;
+          perspective?: string;
+        } = {};
 
         if (filters.period !== 'all') {
           apiFilters.period = filters.period;
@@ -133,20 +138,36 @@ export function HistoryPage() {
     <div className="screen-content p-8 max-w-5xl">
       <div className="flex justify-between items-center mb-8 gap-3 flex-wrap">
         <div>
-          <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
-            <HistoryIcon className="w-3 h-3" /><span className="uppercase tracking-wider">HISTORY</span>
+          <div
+            className="flex items-center gap-2 text-xs mb-2"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            <HistoryIcon className="w-3 h-3" />
+            <span className="uppercase tracking-wider">HISTORY</span>
           </div>
           <h1 className="text-3xl font-bold">レビュー履歴</h1>
         </div>
-        <button onClick={() => navigate('/reviews/new')} className="btn-gradient px-5 py-2.5 rounded-xl font-semibold inline-flex items-center gap-2 text-sm">
-          <Plus className="w-4 h-4" />新規レビュー
+        <button
+          onClick={() => navigate('/reviews/new')}
+          className="btn-gradient px-5 py-2.5 rounded-xl font-semibold inline-flex items-center gap-2 text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          新規レビュー
         </button>
       </div>
 
-      <HistoryFilters value={filters} onChange={setFilters} onClear={() => setFilters(INITIAL_FILTERS)} isFiltered={isFiltered} />
+      <HistoryFilters
+        value={filters}
+        onChange={setFilters}
+        onClear={() => setFilters(INITIAL_FILTERS)}
+        isFiltered={isFiltered}
+      />
 
       {error && (
-        <div className="mb-4 p-4 rounded-xl text-red-500 text-sm" style={{ background: 'rgba(225,29,72,0.1)' }}>
+        <div
+          className="mb-4 p-4 rounded-xl text-red-500 text-sm"
+          style={{ background: 'rgba(225,29,72,0.1)' }}
+        >
           {error}
         </div>
       )}
@@ -158,14 +179,25 @@ export function HistoryPage() {
       {filtered.length > 0 ? (
         <div className="space-y-3">
           {filtered.map((item) => (
-            <HistoryCard key={item.id} item={item} onOpen={(id) => navigate(`/reviews/${id}`)} onRereview={(target) => setModalTarget(target)} />
+            <HistoryCard
+              key={item.id}
+              item={item}
+              onOpen={(id) => navigate(`/reviews/${id}`)}
+              onRereview={(target) => setModalTarget(target)}
+            />
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
           <SearchX className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>該当するレビューが見つかりません</p>
-          <button onClick={() => setFilters(INITIAL_FILTERS)} className="mt-3 text-xs" style={{ color: 'var(--accent-blue)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            該当するレビューが見つかりません
+          </p>
+          <button
+            onClick={() => setFilters(INITIAL_FILTERS)}
+            className="mt-3 text-xs"
+            style={{ color: 'var(--accent-blue)' }}
+          >
             フィルタをクリア
           </button>
         </div>

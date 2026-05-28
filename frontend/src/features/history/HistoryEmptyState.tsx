@@ -181,9 +181,7 @@ export function HistoryErrorState({
       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
         エラーが発生しました
       </h3>
-      <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm mb-6">
-        {message}
-      </p>
+      <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm mb-6">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}

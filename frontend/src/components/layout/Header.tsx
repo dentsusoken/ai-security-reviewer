@@ -57,9 +57,7 @@ export function Header() {
           >
             <PanelLeft className="w-4 h-4" />
           </button>
-          <div
-            className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center glow-blue"
-          >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center glow-blue">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
           <div>

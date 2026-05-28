@@ -61,13 +61,7 @@ export function ProtectedRoute({
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     // Save the attempted URL for redirecting after login
-    return (
-      <Navigate
-        to={redirectTo}
-        state={{ from: location.pathname }}
-        replace
-      />
-    );
+    return <Navigate to={redirectTo} state={{ from: location.pathname }} replace />;
   }
 
   // Render protected content
@@ -77,10 +71,7 @@ export function ProtectedRoute({
 /**
  * Higher-order component to wrap a component with authentication guard.
  */
-export function withAuth<P extends object>(
-  Component: React.ComponentType<P>,
-  redirectTo = '/'
-) {
+export function withAuth<P extends object>(Component: React.ComponentType<P>, redirectTo = '/') {
   return function AuthenticatedComponent(props: P) {
     return (
       <ProtectedRoute redirectTo={redirectTo}>
@@ -100,10 +91,7 @@ interface PublicOnlyRouteProps {
   redirectTo?: string;
 }
 
-export function PublicOnlyRoute({
-  children,
-  redirectTo = '/dashboard',
-}: PublicOnlyRouteProps) {
+export function PublicOnlyRoute({ children, redirectTo = '/dashboard' }: PublicOnlyRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 

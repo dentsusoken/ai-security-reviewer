@@ -16,9 +16,12 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
       >
         <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#EA580C' }} />
         <div className="text-sm">
-          <div className="font-semibold mb-1" style={{ color: '#EA580C' }}>動的スキャンには所有確認が必要です</div>
+          <div className="font-semibold mb-1" style={{ color: '#EA580C' }}>
+            動的スキャンには所有確認が必要です
+          </div>
           <div style={{ color: 'var(--text-secondary)' }}>
-            他人のサイトへの無断スキャンは違法となる可能性があります。<br />
+            他人のサイトへの無断スキャンは違法となる可能性があります。
+            <br />
             必ずご自身が所有・管理するURLを指定してください。
           </div>
         </div>
@@ -29,7 +32,10 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
         スキャン対象URL <span style={{ color: '#E11D48' }}>*</span>
       </label>
       <div className="relative">
-        <Globe className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+        <Globe
+          className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2"
+          style={{ color: 'var(--text-tertiary)' }}
+        />
         <input
           type="text"
           value={targetUrl}
@@ -47,7 +53,10 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
         所有確認方式
       </label>
       <div className="space-y-2">
-        <label className="cursor-pointer flex items-start gap-3 p-3 rounded-xl border transition" style={{ borderColor: 'var(--border)' }}>
+        <label
+          className="cursor-pointer flex items-start gap-3 p-3 rounded-xl border transition"
+          style={{ borderColor: 'var(--border)' }}
+        >
           <input
             type="radio"
             name="verify-method"
@@ -57,14 +66,22 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
           />
           <div>
             <div className="font-semibold text-sm">HTMLメタタグ</div>
-            <div className="text-xs mt-1 mb-2" style={{ color: 'var(--text-tertiary)' }}>指定のメタタグをサイトの head に追加</div>
-            <code className="text-xs px-2 py-1 rounded font-mono inline-block" style={{ background: 'var(--bg-elevated)', color: 'var(--accent-cyan)' }}>
+            <div className="text-xs mt-1 mb-2" style={{ color: 'var(--text-tertiary)' }}>
+              指定のメタタグをサイトの head に追加
+            </div>
+            <code
+              className="text-xs px-2 py-1 rounded font-mono inline-block"
+              style={{ background: 'var(--bg-elevated)', color: 'var(--accent-cyan)' }}
+            >
               {'<meta name="ai-sec-verify" content="abc123xyz" />'}
             </code>
           </div>
         </label>
 
-        <label className="cursor-pointer flex items-start gap-3 p-3 rounded-xl border transition" style={{ borderColor: 'var(--border)' }}>
+        <label
+          className="cursor-pointer flex items-start gap-3 p-3 rounded-xl border transition"
+          style={{ borderColor: 'var(--border)' }}
+        >
           <input
             type="radio"
             name="verify-method"
@@ -74,7 +91,9 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
           />
           <div>
             <div className="font-semibold text-sm">DNS TXTレコード</div>
-            <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>ドメインの DNS に TXT レコードを追加</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+              ドメインの DNS に TXT レコードを追加
+            </div>
           </div>
         </label>
       </div>
@@ -84,7 +103,8 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
         className="mt-4 w-full px-4 py-2.5 rounded-xl border text-sm font-semibold transition inline-flex items-center justify-center gap-2 hover:opacity-80"
         style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}
       >
-        <CheckCircle2 className="w-4 h-4" />所有確認を実行
+        <CheckCircle2 className="w-4 h-4" />
+        所有確認を実行
       </button>
 
       <label className="flex items-center gap-2 text-sm font-semibold mb-3 mt-5">
@@ -105,7 +125,9 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
             style={{ borderColor: 'var(--border)' }}
           >
             <div className="font-semibold text-sm">Baseline Scan</div>
-            <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>受動的・5分程度</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+              受動的・5分程度
+            </div>
           </div>
         </label>
 
@@ -122,7 +144,9 @@ export function UrlScanForm({ targetUrl, verifyMethod, scanType, onChange }: Url
             style={{ borderColor: 'var(--border)' }}
           >
             <div className="font-semibold text-sm">Full Scan</div>
-            <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>能動的・20-30分</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+              能動的・20-30分
+            </div>
           </div>
         </label>
       </div>

@@ -14,8 +14,14 @@ export function ProgressBar({
   const normalized = Math.max(0, Math.min(100, value));
 
   return (
-    <div className={`w-full ${heightClassName} rounded-full overflow-hidden relative`} style={{ background: 'var(--border)' }}>
-      <div className="h-full rounded-full relative" style={{ width: `${normalized}%`, background: gradient }}>
+    <div
+      className={`w-full ${heightClassName} rounded-full overflow-hidden relative`}
+      style={{ background: 'var(--border)' }}
+    >
+      <div
+        className="h-full rounded-full relative"
+        style={{ width: `${normalized}%`, background: gradient }}
+      >
         {showShimmer ? <div className="absolute inset-0 shimmer" /> : null}
       </div>
     </div>

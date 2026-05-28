@@ -1,5 +1,18 @@
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Zap, BarChart3, FileCheck, AlertTriangle, CheckCircle2, TrendingUp, FolderGit2, Clock, ChevronRight, ArrowRight, Loader2 } from 'lucide-react';
+import {
+  Sparkles,
+  Zap,
+  BarChart3,
+  FileCheck,
+  AlertTriangle,
+  CheckCircle2,
+  TrendingUp,
+  FolderGit2,
+  Clock,
+  ChevronRight,
+  ArrowRight,
+  Loader2,
+} from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { useDashboard, formatTimestamp, getRepoName } from '../features/dashboard';
 import { useAuth } from '../features/auth';
@@ -30,7 +43,9 @@ export function DashboardPage() {
         <div className="glass rounded-2xl p-8 text-center">
           <AlertTriangle className="w-12 h-12 mx-auto mb-4" style={{ color: '#EA580C' }} />
           <p className="text-lg font-semibold mb-2">読み込みエラー</p>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{error}</p>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {error}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 rounded-lg border hover:opacity-80"
@@ -47,7 +62,10 @@ export function DashboardPage() {
     <div className="p-8 max-w-6xl">
       {/* Welcome Section */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
+        <div
+          className="flex items-center gap-2 text-xs mb-2"
+          style={{ color: 'var(--text-tertiary)' }}
+        >
           <Sparkles className="w-3 h-3" />
           <span>Welcome back</span>
         </div>
@@ -58,9 +76,15 @@ export function DashboardPage() {
 
       {/* Quick Start Card */}
       <GlassCard className="relative rounded-2xl p-8 overflow-hidden mb-8">
-        <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl" style={{ background: 'rgba(79,139,255,0.15)' }}></div>
+        <div
+          className="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl"
+          style={{ background: 'rgba(79,139,255,0.15)' }}
+        ></div>
         <div className="relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs mb-4" style={{ background: 'var(--bg-elevated)' }}>
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs mb-4"
+            style={{ background: 'var(--bg-elevated)' }}
+          >
             <Zap className="w-3 h-3" style={{ color: '#EAB308' }} />
             <span>Quick Start</span>
           </div>
@@ -84,7 +108,10 @@ export function DashboardPage() {
       {/* Stats Section */}
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
-        <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+        <h2
+          className="text-sm font-semibold uppercase tracking-wider"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           統計
         </h2>
       </div>
@@ -92,7 +119,10 @@ export function DashboardPage() {
         {/* Total Reviews */}
         <GlassCard className="rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(79,139,255,0.2)' }}>
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ background: 'rgba(79,139,255,0.2)' }}
+            >
               <FileCheck className="w-4 h-4" style={{ color: 'var(--accent-blue)' }} />
             </div>
             <span className="text-xs font-semibold" style={{ color: '#16A34A' }}>
@@ -108,7 +138,10 @@ export function DashboardPage() {
         {/* Total Findings */}
         <GlassCard className="rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.2)' }}>
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ background: 'rgba(234,88,12,0.2)' }}
+            >
               <AlertTriangle className="w-4 h-4" style={{ color: '#EA580C' }} />
             </div>
           </div>
@@ -123,11 +156,17 @@ export function DashboardPage() {
         {/* Fixed */}
         <GlassCard className="rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(22,163,74,0.2)' }}>
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ background: 'rgba(22,163,74,0.2)' }}
+            >
               <CheckCircle2 className="w-4 h-4" style={{ color: '#16A34A' }} />
             </div>
             <span className="text-xs font-semibold" style={{ color: '#16A34A' }}>
-              {stats.totalFindings > 0 ? Math.round((stats.resolvedFindings / stats.totalFindings) * 100) : 0}%
+              {stats.totalFindings > 0
+                ? Math.round((stats.resolvedFindings / stats.totalFindings) * 100)
+                : 0}
+              %
             </span>
           </div>
           <div className="text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>
@@ -141,7 +180,10 @@ export function DashboardPage() {
         {/* Average Score */}
         <GlassCard className="rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(167,139,250,0.2)' }}>
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ background: 'rgba(167,139,250,0.2)' }}
+            >
               <TrendingUp className="w-4 h-4" style={{ color: 'var(--accent-purple)' }} />
             </div>
             <span className="text-xs font-semibold" style={{ color: '#16A34A' }}>
@@ -164,7 +206,10 @@ export function DashboardPage() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
-          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+          <h2
+            className="text-sm font-semibold uppercase tracking-wider"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             最近のレビュー
           </h2>
         </div>
@@ -214,7 +259,10 @@ export function DashboardPage() {
                     {review.branch}
                   </span>
                 </div>
-                <div className="text-xs mt-1 flex items-center gap-3" style={{ color: 'var(--text-tertiary)' }}>
+                <div
+                  className="text-xs mt-1 flex items-center gap-3"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {formatTimestamp(review.startedAt)}
@@ -228,7 +276,10 @@ export function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <div className="text-2xl font-bold" style={{ color: review.scoreSummary.overall < 70 ? '#EA580C' : '#16A34A' }}>
+                <div
+                  className="text-2xl font-bold"
+                  style={{ color: review.scoreSummary.overall < 70 ? '#EA580C' : '#16A34A' }}
+                >
                   {review.scoreSummary.overall}
                 </div>
                 <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>

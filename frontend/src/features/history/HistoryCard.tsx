@@ -39,19 +39,34 @@ export function HistoryCard({ item, onOpen, onRereview }: HistoryCardProps) {
     <div className="glass rounded-2xl p-5 transition">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4 flex-1 min-w-[260px]">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: tileBg(item.score) }}>
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{ background: tileBg(item.score) }}
+          >
             <FolderGit2 className="w-5 h-5" style={{ color }} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <span className="font-semibold">{item.repo}</span>
-              <span className="text-xs px-2 py-0.5 rounded font-mono" style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>
+              <span
+                className="text-xs px-2 py-0.5 rounded font-mono"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}
+              >
                 {item.branch}
               </span>
             </div>
-            <div className="text-xs flex items-center gap-3 flex-wrap" style={{ color: 'var(--text-tertiary)' }}>
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{item.timestamp}</span>
-              <span className="flex items-center gap-1"><Timer className="w-3 h-3" />{item.duration}</span>
+            <div
+              className="text-xs flex items-center gap-3 flex-wrap"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {item.timestamp}
+              </span>
+              <span className="flex items-center gap-1">
+                <Timer className="w-3 h-3" />
+                {item.duration}
+              </span>
               {item.counts.map((count) => (
                 <span key={count}>{count}</span>
               ))}
@@ -61,14 +76,26 @@ export function HistoryCard({ item, onOpen, onRereview }: HistoryCardProps) {
 
         <div className="flex items-center gap-5">
           <div className="text-right">
-            <div className="text-2xl font-bold" style={{ color }}>{item.score}</div>
-            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>/100</div>
+            <div className="text-2xl font-bold" style={{ color }}>
+              {item.score}
+            </div>
+            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              /100
+            </div>
           </div>
           <div className="flex gap-1">
-            <button onClick={() => onOpen(item.id)} className="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style={{ borderColor: 'var(--border)' }}>
+            <button
+              onClick={() => onOpen(item.id)}
+              className="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs"
+              style={{ borderColor: 'var(--border)' }}
+            >
               詳細
             </button>
-            <button onClick={() => onRereview(item)} className="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style={{ borderColor: 'var(--border)' }}>
+            <button
+              onClick={() => onRereview(item)}
+              className="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs"
+              style={{ borderColor: 'var(--border)' }}
+            >
               再レビュー
             </button>
           </div>

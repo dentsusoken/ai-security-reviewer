@@ -91,10 +91,7 @@ export function useHistory(options?: {
 
   // Check if any filters are active
   const hasActiveFilters =
-    !!filters.query ||
-    !!filters.period ||
-    !!filters.scoreRange ||
-    !!filters.perspective;
+    !!filters.query || !!filters.period || !!filters.scoreRange || !!filters.perspective;
 
   // Fetch history with current filters
   const fetchHistory = useCallback(async () => {

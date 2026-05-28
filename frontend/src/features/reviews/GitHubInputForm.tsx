@@ -14,7 +14,10 @@ export function GitHubInputForm({ repoUrl, branch, onChange }: GitHubInputFormPr
         リポジトリURL <span style={{ color: '#E11D48' }}>*</span>
       </label>
       <div className="relative">
-        <FolderGit2 className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+        <FolderGit2
+          className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2"
+          style={{ color: 'var(--text-tertiary)' }}
+        />
         <input
           type="text"
           value={repoUrl}

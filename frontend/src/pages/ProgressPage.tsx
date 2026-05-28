@@ -113,7 +113,7 @@ export function ProgressPage() {
   const handleAgentProgress = useCallback((data: BackendAgentProgressEvent) => {
     const agentKey = data.agent_name;
 
-    setAgents(prev => ({
+    setAgents((prev) => ({
       ...prev,
       [agentKey]: {
         ...prev[agentKey],
@@ -128,7 +128,7 @@ export function ProgressPage() {
   // Handle fetching events (repo, files, etc.)
   const handleFetching = useCallback((eventType: string, data: BackendFetchingEvent) => {
     if (eventType === 'fetching_repo' || eventType === 'fetching_tree') {
-      setAgents(prev => ({
+      setAgents((prev) => ({
         ...prev,
         repo: {
           ...prev.repo,
@@ -138,7 +138,7 @@ export function ProgressPage() {
       }));
     } else if (eventType === 'files_found' || eventType === 'files_fetched') {
       const isComplete = eventType === 'files_fetched';
-      setAgents(prev => ({
+      setAgents((prev) => ({
         ...prev,
         repo: {
           ...prev.repo,
@@ -148,20 +148,19 @@ export function ProgressPage() {
         },
       }));
     } else if (eventType === 'fetching_file') {
-      setAgents(prev => ({
+      setAgents((prev) => ({
         ...prev,
         repo: {
           ...prev.repo,
           status: 'running',
           description: data.message,
-          progress: data.current && data.total
-            ? Math.round((data.current / data.total) * 100)
-            : undefined,
+          progress:
+            data.current && data.total ? Math.round((data.current / data.total) * 100) : undefined,
         },
       }));
     } else if (eventType === 'analyzing_code') {
       // Mark repo as completed and start AI agent
-      setAgents(prev => ({
+      setAgents((prev) => ({
         ...prev,
         repo: {
           ...prev.repo,
@@ -179,36 +178,39 @@ export function ProgressPage() {
   // Handle log events
   const handleLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString('ja-JP');
-    setLogLines(prev => [...prev.slice(-49), `[${timestamp}] ${message}`]);
+    setLogLines((prev) => [...prev.slice(-49), `[${timestamp}] ${message}`]);
   }, []);
 
   // Handle completion
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleCompleted = useCallback((_data?: BackendCompletedEvent) => {
-    setIsCompleted(true);
-    setOverallProgress(100);
+  const handleCompleted = useCallback(
+    (_data?: BackendCompletedEvent) => {
+      setIsCompleted(true);
+      setOverallProgress(100);
 
-    // Mark all agents as completed
-    setAgents(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(key => {
-        if (updated[key].status === 'running' || updated[key].status === 'waiting') {
-          updated[key] = { ...updated[key], status: 'completed' };
-        }
+      // Mark all agents as completed
+      setAgents((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((key) => {
+          if (updated[key].status === 'running' || updated[key].status === 'waiting') {
+            updated[key] = { ...updated[key], status: 'completed' };
+          }
+        });
+        return updated;
       });
-      return updated;
-    });
 
-    // Stop the timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+      // Stop the timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
 
-    // Auto-navigate after a short delay
-    setTimeout(() => {
-      navigate(`/reviews/${reviewId}`);
-    }, 2000);
-  }, [navigate, reviewId]);
+      // Auto-navigate after a short delay
+      setTimeout(() => {
+        navigate(`/reviews/${reviewId}`);
+      }, 2000);
+    },
+    [navigate, reviewId]
+  );
 
   // Handle errors
   const handleError = useCallback((error: BackendErrorEvent) => {
@@ -216,9 +218,9 @@ export function ProgressPage() {
     setErrorMessage(error.message);
 
     // Mark running agents as failed
-    setAgents(prev => {
+    setAgents((prev) => {
       const updated = { ...prev };
-      Object.keys(updated).forEach(key => {
+      Object.keys(updated).forEach((key) => {
         if (updated[key].status === 'running') {
           updated[key] = { ...updated[key], status: 'failed' };
         }
@@ -249,7 +251,15 @@ export function ProgressPage() {
     return () => {
       cleanup();
     };
-  }, [reviewId, handleProgress, handleAgentProgress, handleFetching, handleCompleted, handleError, handleLog]);
+  }, [
+    reviewId,
+    handleProgress,
+    handleAgentProgress,
+    handleFetching,
+    handleCompleted,
+    handleError,
+    handleLog,
+  ]);
 
   const getStatusText = () => {
     if (hasError) return 'エラー発生';
@@ -266,16 +276,23 @@ export function ProgressPage() {
   return (
     <div className="screen-content p-8 max-w-4xl">
       <div className="mb-8">
-        <div className="flex items-center gap-2 text-xs mb-2" style={{ color: hasError ? 'var(--accent-red)' : 'var(--accent-blue)' }}>
+        <div
+          className="flex items-center gap-2 text-xs mb-2"
+          style={{ color: hasError ? 'var(--accent-red)' : 'var(--accent-blue)' }}
+        >
           <span className="relative flex w-2 h-2">
             {!isCompleted && !hasError && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--accent-blue)' }} />
+              <span
+                className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                style={{ background: 'var(--accent-blue)' }}
+              />
             )}
-            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: hasError ? 'var(--accent-red)' : 'var(--accent-blue)' }} />
+            <span
+              className="relative inline-flex rounded-full h-2 w-2"
+              style={{ background: hasError ? 'var(--accent-red)' : 'var(--accent-blue)' }}
+            />
           </span>
-          <span className="uppercase tracking-wider font-semibold">
-            {getStatusText()}
-          </span>
+          <span className="uppercase tracking-wider font-semibold">{getStatusText()}</span>
         </div>
         <h1 className="text-3xl font-bold">{getHeaderText()}</h1>
         <p className="mt-2 font-mono text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -284,7 +301,10 @@ export function ProgressPage() {
       </div>
 
       {hasError && errorMessage && (
-        <div className="glass rounded-2xl p-4 mb-6 border" style={{ borderColor: 'var(--accent-red)', background: 'rgba(239, 68, 68, 0.1)' }}>
+        <div
+          className="glass rounded-2xl p-4 mb-6 border"
+          style={{ borderColor: 'var(--accent-red)', background: 'rgba(239, 68, 68, 0.1)' }}
+        >
           <p className="text-sm" style={{ color: 'var(--accent-red)' }}>
             ❌ {errorMessage}
           </p>
@@ -293,11 +313,16 @@ export function ProgressPage() {
 
       <div className="glass rounded-2xl p-6 mb-6">
         <div className="flex justify-between items-center mb-3">
-          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>全体進捗</span>
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            全体進捗
+          </span>
           <span className="text-2xl font-bold gradient-text">{overallProgress}%</span>
         </div>
         <ProgressBar value={overallProgress} showShimmer={!isCompleted && !hasError} />
-        <div className="flex justify-between mt-3 text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>
+        <div
+          className="flex justify-between mt-3 text-xs font-mono"
+          style={{ color: 'var(--text-tertiary)' }}
+        >
           <span>経過 {formatTime(elapsedMs)}</span>
           <span>{getEstimatedRemaining()}</span>
         </div>
@@ -343,7 +368,8 @@ export function ProgressPage() {
               <>結果を表示</>
             ) : (
               <>
-                <FastForward className="w-4 h-4" />結果へ（デモ用スキップ）
+                <FastForward className="w-4 h-4" />
+                結果へ（デモ用スキップ）
               </>
             )}
           </button>

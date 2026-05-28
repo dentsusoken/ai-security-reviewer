@@ -31,9 +31,7 @@ export function ResolveToggle({
 }: ResolveToggleProps) {
   const isResolved = state === 'resolved';
 
-  const baseStyles = compact
-    ? 'px-2 py-1 rounded text-xs'
-    : 'px-4 py-2 rounded-lg text-sm';
+  const baseStyles = compact ? 'px-2 py-1 rounded text-xs' : 'px-4 py-2 rounded-lg text-sm';
 
   const resolvedStyles = {
     background: 'var(--bg-elevated)',

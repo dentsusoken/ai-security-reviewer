@@ -19,7 +19,10 @@ export function HistoryFilters({ value, onChange, onClear, isFiltered }: History
   return (
     <>
       <div className="relative mb-4">
-        <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+        <Search
+          className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2"
+          style={{ color: 'var(--text-tertiary)' }}
+        />
         <input
           type="text"
           value={value.search}
@@ -34,7 +37,9 @@ export function HistoryFilters({ value, onChange, onClear, isFiltered }: History
           label="期間"
           icon={<Calendar className="w-3 h-3" />}
           value={value.period}
-          onChange={(period) => onChange({ ...value, period: period as HistoryFilterState['period'] })}
+          onChange={(period) =>
+            onChange({ ...value, period: period as HistoryFilterState['period'] })
+          }
           options={[
             { value: 'all', label: '全期間' },
             { value: 'today', label: '今日' },
@@ -62,7 +67,9 @@ export function HistoryFilters({ value, onChange, onClear, isFiltered }: History
           label="観点"
           icon={<Layers className="w-3 h-3" />}
           value={value.aspect}
-          onChange={(aspect) => onChange({ ...value, aspect: aspect as HistoryFilterState['aspect'] })}
+          onChange={(aspect) =>
+            onChange({ ...value, aspect: aspect as HistoryFilterState['aspect'] })
+          }
           options={[
             { value: 'all', label: '全観点' },
             { value: 'asvs', label: 'OWASP ASVS 網羅性' },
@@ -77,7 +84,8 @@ export function HistoryFilters({ value, onChange, onClear, isFiltered }: History
             className="px-3 py-1.5 rounded-lg border transition hover:opacity-80 inline-flex items-center gap-1.5 text-xs"
             style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}
           >
-            <X className="w-3 h-3" />クリア
+            <X className="w-3 h-3" />
+            クリア
           </button>
         ) : null}
       </div>

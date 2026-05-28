@@ -40,7 +40,7 @@ export async function downloadExcel(reviewId: string): Promise<void> {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     },
   });
 

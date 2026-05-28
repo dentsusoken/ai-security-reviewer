@@ -20,7 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         }, 2200);
       },
     }),
-    [],
+    []
   );
 
   return (

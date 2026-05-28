@@ -12,7 +12,10 @@ export function CodeInputForm({ fileName, language, sourceCode, onChange }: Code
     <div className="glass rounded-2xl p-6 mb-5">
       <label className="flex items-center gap-2 text-sm font-semibold mb-3">
         <FileCode2 className="w-4 h-4" style={{ color: 'var(--accent-blue)' }} />
-        ファイル名 <span className="text-xs font-normal" style={{ color: 'var(--text-tertiary)' }}>(任意)</span>
+        ファイル名{' '}
+        <span className="text-xs font-normal" style={{ color: 'var(--text-tertiary)' }}>
+          (任意)
+        </span>
       </label>
       <input
         type="text"

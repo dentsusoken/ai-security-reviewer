@@ -23,7 +23,10 @@ export function Modal({ open, onClose, title, icon, children, footer }: ModalPro
         style={{ maxWidth: '32rem', maxHeight: '90vh' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-5 border-b" style={{ borderColor: 'var(--border)' }}>
+        <div
+          className="flex justify-between items-center p-5 border-b"
+          style={{ borderColor: 'var(--border)' }}
+        >
           <div className="flex items-center gap-2">
             {icon}
             <h2 className="font-bold">{title}</h2>
@@ -41,7 +44,10 @@ export function Modal({ open, onClose, title, icon, children, footer }: ModalPro
         <div className="p-5 overflow-y-auto flex-1">{children}</div>
 
         {footer ? (
-          <div className="flex justify-end gap-2 p-5 border-t" style={{ borderColor: 'var(--border)' }}>
+          <div
+            className="flex justify-end gap-2 p-5 border-t"
+            style={{ borderColor: 'var(--border)' }}
+          >
             {footer}
           </div>
         ) : null}

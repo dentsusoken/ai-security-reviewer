@@ -141,151 +141,167 @@ export function useReviewProgressSSE(
   // Add log line with timestamp
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString('ja-JP');
-    setLogLines(prev => [...prev.slice(-(MAX_LOG_LINES - 1)), `[${timestamp}] ${message}`]);
+    setLogLines((prev) => [...prev.slice(-(MAX_LOG_LINES - 1)), `[${timestamp}] ${message}`]);
   }, []);
 
   // Handle progress events
-  const handleProgress = useCallback((data: BackendProgressEvent) => {
-    setOverallProgress(data.percent);
-    if (data.message) {
-      addLog(data.message);
-    }
-  }, [addLog]);
+  const handleProgress = useCallback(
+    (data: BackendProgressEvent) => {
+      setOverallProgress(data.percent);
+      if (data.message) {
+        addLog(data.message);
+      }
+    },
+    [addLog]
+  );
 
   // Handle agent progress events
-  const handleAgentProgress = useCallback((data: BackendAgentProgressEvent) => {
-    const agentKey = data.agent_name;
+  const handleAgentProgress = useCallback(
+    (data: BackendAgentProgressEvent) => {
+      const agentKey = data.agent_name;
 
-    setAgents(prev => ({
-      ...prev,
-      [agentKey]: {
-        ...prev[agentKey],
-        title: prev[agentKey]?.title || `🤖 ${agentKey}`,
-        status: data.status as AgentState['status'],
-        progress: data.progress_percent,
-        description: data.message || prev[agentKey]?.description || '',
-      },
-    }));
+      setAgents((prev) => ({
+        ...prev,
+        [agentKey]: {
+          ...prev[agentKey],
+          title: prev[agentKey]?.title || `🤖 ${agentKey}`,
+          status: data.status as AgentState['status'],
+          progress: data.progress_percent,
+          description: data.message || prev[agentKey]?.description || '',
+        },
+      }));
 
-    if (data.message) {
-      addLog(`[${data.agent_name}] ${data.message}`);
-    }
-  }, [addLog]);
+      if (data.message) {
+        addLog(`[${data.agent_name}] ${data.message}`);
+      }
+    },
+    [addLog]
+  );
 
   // Handle fetching events
-  const handleFetching = useCallback((eventType: string, data: BackendFetchingEvent) => {
-    if (eventType === 'fetching_repo' || eventType === 'fetching_tree') {
-      setAgents(prev => ({
-        ...prev,
-        repo: {
-          ...prev.repo,
-          status: 'running',
-          description: data.message,
-        },
-      }));
-    } else if (eventType === 'files_found' || eventType === 'files_fetched') {
-      const isComplete = eventType === 'files_fetched';
-      setAgents(prev => ({
-        ...prev,
-        repo: {
-          ...prev.repo,
-          status: isComplete ? 'completed' : 'running',
-          description: data.message,
-          details: data.file_count ? `${data.file_count} files` : undefined,
-        },
-      }));
-    } else if (eventType === 'fetching_file') {
-      setAgents(prev => ({
-        ...prev,
-        repo: {
-          ...prev.repo,
-          status: 'running',
-          description: data.message,
-          progress: data.current && data.total
-            ? Math.round((data.current / data.total) * 100)
-            : undefined,
-        },
-      }));
-    } else if (eventType === 'analyzing_code') {
-      setAgents(prev => ({
-        ...prev,
-        repo: {
-          ...prev.repo,
-          status: 'completed',
-        },
-        SpecComplianceAgent: {
-          ...prev.SpecComplianceAgent,
-          status: 'running',
-          description: data.message,
-        },
-      }));
-    }
+  const handleFetching = useCallback(
+    (eventType: string, data: BackendFetchingEvent) => {
+      if (eventType === 'fetching_repo' || eventType === 'fetching_tree') {
+        setAgents((prev) => ({
+          ...prev,
+          repo: {
+            ...prev.repo,
+            status: 'running',
+            description: data.message,
+          },
+        }));
+      } else if (eventType === 'files_found' || eventType === 'files_fetched') {
+        const isComplete = eventType === 'files_fetched';
+        setAgents((prev) => ({
+          ...prev,
+          repo: {
+            ...prev.repo,
+            status: isComplete ? 'completed' : 'running',
+            description: data.message,
+            details: data.file_count ? `${data.file_count} files` : undefined,
+          },
+        }));
+      } else if (eventType === 'fetching_file') {
+        setAgents((prev) => ({
+          ...prev,
+          repo: {
+            ...prev.repo,
+            status: 'running',
+            description: data.message,
+            progress:
+              data.current && data.total
+                ? Math.round((data.current / data.total) * 100)
+                : undefined,
+          },
+        }));
+      } else if (eventType === 'analyzing_code') {
+        setAgents((prev) => ({
+          ...prev,
+          repo: {
+            ...prev.repo,
+            status: 'completed',
+          },
+          SpecComplianceAgent: {
+            ...prev.SpecComplianceAgent,
+            status: 'running',
+            description: data.message,
+          },
+        }));
+      }
 
-    if (data.message) {
-      addLog(data.message);
-    }
-  }, [addLog]);
+      if (data.message) {
+        addLog(data.message);
+      }
+    },
+    [addLog]
+  );
 
   // Handle completion
-  const handleCompleted = useCallback((data: BackendCompletedEvent) => {
-    setIsCompleted(true);
-    setOverallProgress(100);
-    setIsConnected(false);
+  const handleCompleted = useCallback(
+    (data: BackendCompletedEvent) => {
+      setIsCompleted(true);
+      setOverallProgress(100);
+      setIsConnected(false);
 
-    // Mark all agents as completed
-    setAgents(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(key => {
-        if (updated[key].status === 'running' || updated[key].status === 'waiting') {
-          updated[key] = { ...updated[key], status: 'completed' };
-        }
+      // Mark all agents as completed
+      setAgents((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((key) => {
+          if (updated[key].status === 'running' || updated[key].status === 'waiting') {
+            updated[key] = { ...updated[key], status: 'completed' };
+          }
+        });
+        return updated;
       });
-      return updated;
-    });
 
-    addLog(`✅ レビュー完了: スコア ${data.overall_score}, ${data.findings_count} 件の指摘`);
-    onCompleted?.(data);
+      addLog(`✅ レビュー完了: スコア ${data.overall_score}, ${data.findings_count} 件の指摘`);
+      onCompleted?.(data);
 
-    // Stop timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-  }, [addLog, onCompleted]);
+      // Stop timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    },
+    [addLog, onCompleted]
+  );
 
   // Handle errors
-  const handleError = useCallback((error: BackendErrorEvent) => {
-    setHasError(true);
-    setErrorMessage(error.message);
-    setIsConnected(false);
+  const handleError = useCallback(
+    (error: BackendErrorEvent) => {
+      setHasError(true);
+      setErrorMessage(error.message);
+      setIsConnected(false);
 
-    // Mark running agents as failed
-    setAgents(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(key => {
-        if (updated[key].status === 'running') {
-          updated[key] = { ...updated[key], status: 'failed' };
-        }
+      // Mark running agents as failed
+      setAgents((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((key) => {
+          if (updated[key].status === 'running') {
+            updated[key] = { ...updated[key], status: 'failed' };
+          }
+        });
+        return updated;
       });
-      return updated;
-    });
 
-    addLog(`❌ エラー: ${error.message}`);
-    onError?.(error);
+      addLog(`❌ エラー: ${error.message}`);
+      onError?.(error);
 
-    // Stop timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+      // Stop timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
 
-    // Try to reconnect
-    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      reconnectTimeoutRef.current = window.setTimeout(() => {
-        setReconnectAttempts(prev => prev + 1);
-        addLog(`再接続を試行中... (${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
-        connect();
-      }, RECONNECT_DELAY_MS);
-    }
-  }, [addLog, onError, reconnectAttempts]);
+      // Try to reconnect
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        reconnectTimeoutRef.current = window.setTimeout(() => {
+          setReconnectAttempts((prev) => prev + 1);
+          addLog(`再接続を試行中... (${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
+          connect();
+        }, RECONNECT_DELAY_MS);
+      }
+    },
+    [addLog, onError, reconnectAttempts]
+  );
 
   // Connect to SSE
   const connect = useCallback(() => {
@@ -305,7 +321,15 @@ export function useReviewProgressSSE(
       onError: handleError,
       onLog: addLog,
     });
-  }, [reviewId, handleProgress, handleAgentProgress, handleFetching, handleCompleted, handleError, addLog]);
+  }, [
+    reviewId,
+    handleProgress,
+    handleAgentProgress,
+    handleFetching,
+    handleCompleted,
+    handleError,
+    addLog,
+  ]);
 
   // Disconnect from SSE
   const disconnect = useCallback(() => {

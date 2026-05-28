@@ -178,11 +178,7 @@ export function useExportJob(): UseExportJobResult {
    * Start a new export job.
    */
   const startExport = useCallback(
-    async (options: {
-      reviewId: string;
-      format: ExportFormat;
-      sections: ExportSections;
-    }) => {
+    async (options: { reviewId: string; format: ExportFormat; sections: ExportSections }) => {
       // Reset state
       pollCountRef.current = 0;
       if (pollTimerRef.current) {

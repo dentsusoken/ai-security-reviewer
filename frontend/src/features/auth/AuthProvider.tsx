@@ -162,11 +162,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
     getAccessToken,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }
 
 /**
@@ -207,11 +203,7 @@ function DevAuthProvider({ children }: { children: ReactNode }) {
     getAccessToken,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }
 
 /**

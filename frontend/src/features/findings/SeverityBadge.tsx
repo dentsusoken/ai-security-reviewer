@@ -11,7 +11,9 @@ const styles = {
 
 export function SeverityBadge({ severity }: SeverityBadgeProps) {
   return (
-    <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${styles[severity].className} shrink-0`}>
+    <span
+      className={`text-xs font-bold px-2.5 py-1 rounded-md ${styles[severity].className} shrink-0`}
+    >
       {severity}
     </span>
   );

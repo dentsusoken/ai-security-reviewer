@@ -17,7 +17,10 @@ export function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+    <div
+      className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden"
+      style={{ background: 'var(--bg-base)' }}
+    >
       <div className="aurora"></div>
       <div className="relative z-10 max-w-2xl w-full text-center">
         {/* Status Badge */}
@@ -64,36 +67,68 @@ export function LandingPage() {
 
         {/* Feature Cards */}
         <div className="grid grid-cols-2 gap-4 mt-8">
-          <div className="glass rounded-2xl p-5 text-left transition hover:scale-105" style={{ cursor: 'pointer' }}>
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: 'rgba(79,139,255,0.2)' }}>
+          <div
+            className="glass rounded-2xl p-5 text-left transition hover:scale-105"
+            style={{ cursor: 'pointer' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+              style={{ background: 'rgba(79,139,255,0.2)' }}
+            >
               <FileSearch className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
             </div>
             <div className="font-semibold mb-1">OWASP ASVS 網羅性チェック</div>
-            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>AIエージェントが仕様観点で評価</div>
+            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              AIエージェントが仕様観点で評価
+            </div>
           </div>
 
-          <div className="glass rounded-2xl p-5 text-left transition hover:scale-105" style={{ cursor: 'pointer' }}>
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: 'rgba(167,139,250,0.2)' }}>
+          <div
+            className="glass rounded-2xl p-5 text-left transition hover:scale-105"
+            style={{ cursor: 'pointer' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+              style={{ background: 'rgba(167,139,250,0.2)' }}
+            >
               <Bot className="w-5 h-5" style={{ color: 'var(--accent-purple)' }} />
             </div>
             <div className="font-semibold mb-1">AI コードレビュー</div>
-            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>根拠と修正案を自動提示</div>
+            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              根拠と修正案を自動提示
+            </div>
           </div>
 
-          <div className="glass rounded-2xl p-5 text-left transition hover:scale-105" style={{ cursor: 'pointer' }}>
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: 'rgba(34,211,238,0.2)' }}>
+          <div
+            className="glass rounded-2xl p-5 text-left transition hover:scale-105"
+            style={{ cursor: 'pointer' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+              style={{ background: 'rgba(34,211,238,0.2)' }}
+            >
               <ScanLine className="w-5 h-5" style={{ color: 'var(--accent-cyan)' }} />
             </div>
             <div className="font-semibold mb-1">静的解析 (Semgrep)</div>
-            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>既知の脆弱性パターンを検出</div>
+            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              既知の脆弱性パターンを検出
+            </div>
           </div>
 
-          <div className="glass rounded-2xl p-5 text-left transition hover:scale-105" style={{ cursor: 'pointer' }}>
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: 'rgba(244,114,182,0.2)' }}>
+          <div
+            className="glass rounded-2xl p-5 text-left transition hover:scale-105"
+            style={{ cursor: 'pointer' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+              style={{ background: 'rgba(244,114,182,0.2)' }}
+            >
               <Radar className="w-5 h-5" style={{ color: '#F472B6' }} />
             </div>
             <div className="font-semibold mb-1">動的スキャン (ZAP)</div>
-            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>所有確認済URLに対して実行</div>
+            <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+              所有確認済URLに対して実行
+            </div>
           </div>
         </div>
       </div>
