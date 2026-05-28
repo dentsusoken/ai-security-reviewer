@@ -2,13 +2,20 @@ import { useState } from 'react';
 import { PanelLeft, LogOut, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { useAuth } from '../../features/auth';
 
 export function Header() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const toggleSidebar = () => {
@@ -23,6 +30,17 @@ export function Header() {
 
     document.body.classList.remove('sidebar-open');
     document.body.classList.toggle('sidebar-collapsed', nextOpen);
+  };
+
+  // Get user initials for avatar
+  const getUserInitial = () => {
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
   };
 
   return (
@@ -53,9 +71,9 @@ export function Header() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-bold text-white">
-              T
+              {getUserInitial()}
             </div>
-            <div className="text-sm">テストユーザー</div>
+            <div className="text-sm">{user?.name || user?.email || 'ユーザー'}</div>
           </div>
           <ThemeToggle />
           <button
