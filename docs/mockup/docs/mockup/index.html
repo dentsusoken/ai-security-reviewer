@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Security Reviewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ===== ダークテーマ ===== */
+    [data-theme="dark"] {
+      --bg-base: #0A0A0F;
+      --bg-surface: #12121A;
+      --bg-elevated: #1A1A24;
+      --bg-input: rgba(0, 0, 0, 0.3);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text-primary: #F5F5F7;
+      --text-secondary: #A1A1AA;
+      --text-tertiary: #6B6B76;
+      --accent-blue: #4F8BFF;
+      --accent-purple: #A78BFA;
+      --accent-cyan: #22D3EE;
+      --glass-bg: rgba(18, 18, 26, 0.6);
+      --glass-bg-strong: rgba(26, 26, 36, 0.8);
+      --code-bg: rgba(0, 0, 0, 0.3);
+      --shadow-glow-blue: 0 0 40px rgba(79, 139, 255, 0.4);
+      --hover-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ===== ライトテーマ ===== */
+    [data-theme="light"] {
+      --bg-base: #F5F7FB;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #F9FAFB;
+      --bg-input: rgba(255, 255, 255, 0.8);
+      --border: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.14);
+      --text-primary: #18181B;
+      --text-secondary: #52525B;
+      --text-tertiary: #A1A1AA;
+      --accent-blue: #2563EB;
+      --accent-purple: #7C3AED;
+      --accent-cyan: #0891B2;
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-bg-strong: rgba(255, 255, 255, 0.9);
+      --code-bg: #F4F4F5;
+      --shadow-glow-blue: 0 4px 20px rgba(37, 99, 235, 0.2);
+      --hover-bg: rgba(0, 0, 0, 0.04);
+    }
+
+    * { -webkit-font-smoothing: antialiased; }
+    html, body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    [data-theme="dark"] body {
+      background-image:
+        radial-gradient(at 20% 0%, rgba(79, 139, 255, 0.15) 0px, transparent 50%),
+        radial-gradient(at 80% 0%, rgba(167, 139, 250, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(34, 211, 238, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+    [data-theme="light"] body {
+      background-image:
+        radial-gradient(at 20% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
+        radial-gradient(at 80% 0%, rgba(124, 58, 237, 0.06) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(8, 145, 178, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--border);
+    }
+    .glass-strong {
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--border-strong);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 50%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .btn-gradient {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+      color: white;
+      transition: all 0.3s;
+      box-shadow: var(--shadow-glow-blue);
+    }
+    .btn-gradient:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+    .glow-blue { box-shadow: var(--shadow-glow-blue); }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .shimmer {
+      background: linear-gradient(90deg, transparent 0%, rgba(79, 139, 255, 0.3) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2s linear infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(79, 139, 255, 0.4); }
+      50% { box-shadow: 0 0 40px rgba(79, 139, 255, 0.7); }
+    }
+    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+    .spin-slow { animation: spin-slow 3s linear infinite; }
+
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up { animation: fade-in-up 0.5s ease-out; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+    .badge-critical { background: rgba(255, 77, 109, 0.15); color: #E11D48; border: 1px solid rgba(255, 77, 109, 0.3); }
+    .badge-high { background: rgba(255, 140, 66, 0.15); color: #EA580C; border: 1px solid rgba(255, 140, 66, 0.3); }
+    .badge-medium { background: rgba(255, 210, 63, 0.15); color: #CA8A04; border: 1px solid rgba(255, 210, 63, 0.3); }
+    .badge-low { background: rgba(74, 222, 128, 0.15); color: #16A34A; border: 1px solid rgba(74, 222, 128, 0.3); }
+
+    [data-theme="dark"] .badge-critical { color: #FF4D6D; }
+    [data-theme="dark"] .badge-high { color: #FF8C42; }
+    [data-theme="dark"] .badge-medium { color: #FFD23F; }
+    [data-theme="dark"] .badge-low { color: #4ADE80; }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: fade-in-up 0.4s ease-out; }
+
+    .screen-nav-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      background: rgba(127,127,127,0.15);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .screen-nav-btn:hover { background: rgba(79, 139, 255, 0.2); color: var(--text-primary); }
+
+    .code-block { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; }
+
+    .aurora { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+    .aurora::before, .aurora::after {
+      content: ''; position: absolute; width: 600px; height: 600px;
+      border-radius: 50%; filter: blur(80px); opacity: 0.4;
+    }
+    [data-theme="light"] .aurora::before,
+    [data-theme="light"] .aurora::after { opacity: 0.25; }
+    .aurora::before {
+      background: var(--accent-blue);
+      top: -200px; left: -100px;
+      animation: aurora-1 15s ease-in-out infinite;
+    }
+    .aurora::after {
+      background: var(--accent-purple);
+      bottom: -200px; right: -100px;
+      animation: aurora-2 18s ease-in-out infinite;
+    }
+    @keyframes aurora-1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(200px,100px); } }
+    @keyframes aurora-2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-200px,-100px); } }
+
+    .nav-item {
+      transition: all 0.2s;
+      border-left: 2px solid transparent;
+      color: var(--text-secondary);
+    }
+    .nav-item:hover {
+      background: rgba(79, 139, 255, 0.08);
+      border-left-color: var(--accent-blue);
+      color: var(--text-primary);
+    }
+    .nav-item.active {
+      background: rgba(79, 139, 255, 0.12);
+      border-left-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .theme-toggle {
+      position: relative;
+      width: 52px; height: 28px;
+      border-radius: 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s;
+      padding: 0;
+    }
+    .theme-toggle-thumb {
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      transition: transform 0.3s;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+    }
+    [data-theme="light"] .theme-toggle-thumb { transform: translateX(24px); }
+
+    input[type="text"], textarea, select {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .hover-row:hover { background: var(--hover-bg); }
+
+    .app-shell { min-height: calc(100vh - 48px); }
+    .app-body { display: flex; min-height: calc(100vh - 110px); }
+    .app-sidebar {
+      width: 240px;
+      min-width: 240px;
+      transition: width 0.25s ease, min-width 0.25s ease, transform 0.25s ease;
+    }
+    .app-main {
+      flex: 1;
+      min-width: 0;
+      transition: margin-left 0.25s ease;
+    }
+    .app-sidebar-overlay { display: none; }
+
+    body.sidebar-collapsed .app-sidebar {
+      width: 78px;
+      min-width: 78px;
+    }
+    body.sidebar-collapsed .app-sidebar .sidebar-label,
+    body.sidebar-collapsed .app-sidebar .sidebar-title {
+      display: none;
+    }
+    body.sidebar-collapsed .app-sidebar .nav-item {
+      justify-content: center;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+      gap: 0;
+    }
+
+    .screen-content {
+      width: 100%;
+    }
+
+    .modal-panel {
+      width: min(92vw, 32rem);
+      max-width: 32rem;
+    }
+
+    @media (max-width: 1023px) {
+      .app-sidebar {
+        position: fixed;
+        top: 104px;
+        bottom: 0;
+        left: 0;
+        z-index: 45;
+        width: min(82vw, 320px) !important;
+        min-width: min(82vw, 320px) !important;
+        transform: translateX(-110%);
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+      }
+      body.sidebar-open .app-sidebar {
+        transform: translateX(0);
+      }
+      .app-sidebar-overlay {
+        position: fixed;
+        top: 104px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        background: rgba(0, 0, 0, 0.42);
+      }
+      body.sidebar-open .app-sidebar-overlay {
+        display: block;
+      }
+      .screen-content {
+        padding: 1rem !important;
+        max-width: 100% !important;
+      }
+      #screen-landing h1 {
+        font-size: 2.6rem !important;
+        line-height: 1.12 !important;
+      }
+      .grid.grid-cols-4,
+      .grid.grid-cols-3,
+      .grid.grid-cols-2 {
+        grid-template-columns: 1fr !important;
+      }
+      .modal-panel {
+        width: 94vw;
+        max-width: 94vw;
+        max-height: 88vh;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .modal-panel {
+        border-radius: 14px !important;
+      }
+      [data-device="mobile"] .fixed.bottom-6.right-6 {
+        right: 0.75rem;
+        left: 0.75rem;
+        bottom: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============ デバッグナビ ============ -->
+<div class="fixed top-0 left-0 right-0 glass-strong z-50 p-2 flex items-center gap-2 flex-wrap text-xs">
+  <span class="font-bold mr-2 gradient-text">🎨 Mock Nav:</span>
+  <button onclick="showScreen('landing')" class="screen-nav-btn">1.ランディング</button>
+  <button onclick="showScreen('dashboard')" class="screen-nav-btn">2.ダッシュボード</button>
+  <button onclick="showScreen('new-review')" class="screen-nav-btn">3.新規レビュー</button>
+  <button onclick="showScreen('progress')" class="screen-nav-btn">4.実行中</button>
+  <button onclick="showScreen('result')" class="screen-nav-btn">5.結果</button>
+  <button onclick="showScreen('finding-detail')" class="screen-nav-btn">6.詳細</button>
+  <button onclick="showScreen('history')" class="screen-nav-btn">7.履歴</button>
+  <button onclick="showExportModal()" class="screen-nav-btn">8.エクスポート</button>
+  <div class="ml-auto flex items-center gap-2">
+    <span class="text-xs" style="color:var(--text-secondary)">Theme</span>
+    <button onclick="toggleTheme()" class="theme-toggle" aria-label="テーマ切替">
+      <div class="theme-toggle-thumb">
+        <i id="theme-icon" data-lucide="moon" class="w-3 h-3"></i>
+      </div>
+    </button>
+  </div>
+</div>
+
+<div class="pt-12">
+
+<!-- ============ 共通テンプレート ============ -->
+<template id="header-template">
+  <header class="glass border-b sticky top-12 z-30" style="border-color:var(--border)">
+    <div class="px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="w-9 h-9 rounded-xl border transition hover:opacity-80 inline-flex items-center justify-center" style="border-color:var(--border);color:var(--text-secondary)" title="サイドバー切替">
+          <i data-lucide="panel-left" class="w-4 h-4 sidebar-toggle-icon"></i>
+        </button>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center glow-blue">
+          <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="font-bold text-base">AI Security Reviewer</div>
+          <div class="text-xs" style="color:var(--text-tertiary)">Powered by Azure AI Agent Service</div>
+        </div>
+      </div>
+            <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-bold text-white">T</div>
+          <div class="text-sm">テストユーザー</div>
+        </div>
+        <button onclick="logout()" class="ml-2 px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs inline-flex items-center gap-1.5" style="border-color:var(--border);color:var(--text-secondary)" title="ログアウト">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          <span>ログアウト</span>
+        </button>
+      </div>
+    </div>
+  </header>
+</template>
+
+<template id="sidenav-template">
+  <aside class="app-sidebar border-r min-h-[calc(100vh-110px)] py-4" style="border-color:var(--border);background:var(--glass-bg)">
+    <nav class="space-y-1 px-2">
+      <a onclick="showScreen('dashboard')" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-r-lg cursor-pointer text-sm">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span class="sidebar-label">ダッシュボード</span>
+      </a>
+      <a onclick="showScreen('new-review')" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-r-lg cursor-pointer text-sm">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i><span class="sidebar-label">新規レビュー</span>
+      </a>
+      <a onclick="showScreen('history')" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-r-lg cursor-pointer text-sm">
+        <i data-lucide="history" class="w-4 h-4"></i><span class="sidebar-label">履歴</span>
+      </a>
+    </nav>
+    </div>
+  </aside>
+</template>
+
+<!-- ============ 1. ランディング ============ -->
+<div id="screen-landing" class="screen active">
+  <div class="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+    <div class="aurora"></div>
+    <div class="relative z-10 max-w-2xl w-full text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass mb-8 text-xs">
+        <span class="relative flex w-2 h-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+        </span>
+        <span style="color:var(--text-secondary)">Powered by Azure AI Agent Service</span>
+      </div>
+
+      <h1 class="text-6xl font-extrabold mb-6 tracking-tight leading-tight">
+        <span class="gradient-text">AI Security</span><br/>
+        <span>Reviewer</span>
+      </h1>
+      <p class="text-lg mb-10 leading-relaxed" style="color:var(--text-secondary)">
+        SDDで開発したWebアプリを<br/>
+        <span style="color:var(--text-primary)" class="font-semibold">AIエージェント</span>が自動でレビュー
+      </p>
+
+      <button onclick="showScreen('dashboard')" class="btn-gradient px-8 py-4 rounded-xl font-semibold text-base inline-flex items-center gap-3 mb-12">
+        <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+        Microsoftでサインイン
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <div class="grid grid-cols-2 gap-4 mt-8">
+        <div class="glass rounded-2xl p-5 text-left transition">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background:rgba(79,139,255,0.2)">
+            <i data-lucide="file-search" class="w-5 h-5" style="color:var(--accent-blue)"></i>
+          </div>
+          <div class="font-semibold mb-1">OWASP ASVS 網羅性チェック</div>
+          <div class="text-xs" style="color:var(--text-tertiary)">AIエージェントが仕様観点で評価</div>
+        </div>
+        <div class="glass rounded-2xl p-5 text-left transition">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background:rgba(167,139,250,0.2)">
+            <i data-lucide="bot" class="w-5 h-5" style="color:var(--accent-purple)"></i>
+          </div>
+          <div class="font-semibold mb-1">AI コードレビュー</div>
+          <div class="text-xs" style="color:var(--text-tertiary)">根拠と修正案を自動提示</div>
+        </div>
+        <div class="glass rounded-2xl p-5 text-left transition">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background:rgba(34,211,238,0.2)">
+            <i data-lucide="scan-line" class="w-5 h-5" style="color:var(--accent-cyan)"></i>
+          </div>
+          <div class="font-semibold mb-1">静的解析 (Semgrep)</div>
+          <div class="text-xs" style="color:var(--text-tertiary)">既知の脆弱性パターンを検出</div>
+        </div>
+        <div class="glass rounded-2xl p-5 text-left transition">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background:rgba(244,114,182,0.2)">
+            <i data-lucide="radar" class="w-5 h-5" style="color:#F472B6"></i>
+          </div>
+          <div class="font-semibold mb-1">動的スキャン (ZAP)</div>
+          <div class="text-xs" style="color:var(--text-tertiary)">所有確認済URLに対して実行</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============ 2. ダッシュボード ============ -->
+<div id="screen-dashboard" class="screen">
+  <div class="layout-with-nav">
+    <div class="screen-content p-8 max-w-6xl">
+      <div class="mb-8">
+        <div class="flex items-center gap-2 text-xs mb-2" style="color:var(--text-tertiary)">
+          <i data-lucide="sparkles" class="w-3 h-3"></i><span>Welcome back</span>
+        </div>
+        <h1 class="text-3xl font-bold">こんにちは、<span class="gradient-text">テストユーザー</span>さん</h1>
+      </div>
+
+      <div class="relative rounded-2xl p-8 overflow-hidden mb-8 glass">
+        <div class="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl" style="background:rgba(79,139,255,0.15)"></div>
+        <div class="relative">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs mb-4" style="background:var(--bg-elevated)">
+            <i data-lucide="zap" class="w-3 h-3" style="color:#EAB308"></i><span>Quick Start</span>
+          </div>
+          <h2 class="text-2xl font-bold mb-2">新しいレビューを開始</h2>
+          <p class="mb-6" style="color:var(--text-secondary)">GitHubリポジトリを指定してAIエージェントによる<br/>セキュリティレビューを実行します</p>
+          <button onclick="showScreen('new-review')" class="btn-gradient px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i>新規レビュー開始<i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="bar-chart-3" class="w-4 h-4" style="color:var(--text-tertiary)"></i>
+        <h2 class="text-sm font-semibold uppercase tracking-wider" style="color:var(--text-secondary)">統計</h2>
+      </div>
+      <div class="grid grid-cols-4 gap-4 mb-10">
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(79,139,255,0.2)">
+              <i data-lucide="file-check" class="w-4 h-4" style="color:var(--accent-blue)"></i>
+            </div>
+            <span class="text-xs font-semibold" style="color:#16A34A">+3</span>
+          </div>
+          <div class="text-xs mb-1" style="color:var(--text-tertiary)">総レビュー</div>
+          <div class="text-3xl font-bold">12</div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(234,88,12,0.2)">
+              <i data-lucide="alert-triangle" class="w-4 h-4" style="color:#EA580C"></i>
+            </div>
+          </div>
+          <div class="text-xs mb-1" style="color:var(--text-tertiary)">検出済</div>
+          <div class="text-3xl font-bold" style="color:#EA580C">47</div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(22,163,74,0.2)">
+              <i data-lucide="check-circle-2" class="w-4 h-4" style="color:#16A34A"></i>
+            </div>
+            <span class="text-xs font-semibold" style="color:#16A34A">49%</span>
+          </div>
+          <div class="text-xs mb-1" style="color:var(--text-tertiary)">修正済</div>
+          <div class="text-3xl font-bold" style="color:#16A34A">23</div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(167,139,250,0.2)">
+              <i data-lucide="trending-up" class="w-4 h-4" style="color:var(--accent-purple)"></i>
+            </div>
+            <span class="text-xs font-semibold" style="color:#16A34A">↑5</span>
+          </div>
+          <div class="text-xs mb-1" style="color:var(--text-tertiary)">平均スコア</div>
+          <div class="text-3xl font-bold"><span class="gradient-text">72</span><span class="text-base" style="color:var(--text-tertiary)">/100</span></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="clock" class="w-4 h-4" style="color:var(--text-tertiary)"></i>
+          <h2 class="text-sm font-semibold uppercase tracking-wider" style="color:var(--text-secondary)">最近のレビュー</h2>
+        </div>
+        <button onclick="showScreen('history')" class="text-sm inline-flex items-center gap-1 hover:underline" style="color:var(--accent-blue)">
+          すべて見る <i data-lucide="arrow-right" class="w-3 h-3"></i>
+        </button>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden">
+        <div onclick="showScreen('result')" class="p-5 cursor-pointer transition hover-row flex items-center justify-between border-b" style="border-color:var(--border)">
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg, rgba(234,88,12,0.2), rgba(225,29,72,0.2))">
+              <i data-lucide="folder-git-2" class="w-5 h-5" style="color:#EA580C"></i>
+            </div>
+            <div>
+              <div class="font-semibold flex items-center gap-2">my-bi-tool <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--bg-elevated);color:var(--text-tertiary)">main</span></div>
+              <div class="text-xs mt-1 flex items-center gap-3" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>2025-XX-XX 14:23</span>
+                <span style="color:#E11D48">●2</span><span style="color:#EA580C">●5</span><span style="color:#CA8A04">●12</span><span style="color:#16A34A">●8</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="text-right"><div class="text-2xl font-bold" style="color:#EA580C">62</div><div class="text-xs" style="color:var(--text-tertiary)">/100</div></div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+        <div onclick="showScreen('result')" class="p-5 cursor-pointer transition hover-row flex items-center justify-between border-b" style="border-color:var(--border)">
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg, rgba(22,163,74,0.2), rgba(8,145,178,0.2))">
+              <i data-lucide="folder-git-2" class="w-5 h-5" style="color:#16A34A"></i>
+            </div>
+            <div>
+              <div class="font-semibold flex items-center gap-2">sample-api <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--bg-elevated);color:var(--text-tertiary)">develop</span></div>
+              <div class="text-xs mt-1 flex items-center gap-3" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>2025-XX-XX 10:15</span>
+                <span style="color:#EA580C">●3</span><span style="color:#CA8A04">●8</span><span style="color:#16A34A">●5</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="text-right"><div class="text-2xl font-bold" style="color:#16A34A">78</div><div class="text-xs" style="color:var(--text-tertiary)">/100</div></div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+        <div onclick="showScreen('result')" class="p-5 cursor-pointer transition hover-row flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg, rgba(79,139,255,0.2), rgba(167,139,250,0.2))">
+              <i data-lucide="folder-git-2" class="w-5 h-5" style="color:var(--accent-blue)"></i>
+            </div>
+            <div>
+              <div class="font-semibold flex items-center gap-2">web-frontend <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--bg-elevated);color:var(--text-tertiary)">main</span></div>
+              <div class="text-xs mt-1 flex items-center gap-3" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>2025-XX-XX 09:00</span>
+                <span style="color:#EA580C">●1</span><span style="color:#CA8A04">●4</span><span style="color:#16A34A">●3</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="text-right"><div class="text-2xl font-bold" style="color:#16A34A">85</div><div class="text-xs" style="color:var(--text-tertiary)">/100</div></div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 3. 新規レビュー（動的フォーム付き） ============ -->
+<div id="screen-new-review" class="screen">
+  <div class="layout-with-nav">
+    <div class="screen-content p-8 max-w-3xl">
+      <div class="mb-6">
+        <div class="flex items-center gap-2 text-xs mb-2" style="color:var(--text-tertiary)">
+          <i data-lucide="plus-circle" class="w-3 h-3"></i><span>NEW REVIEW</span>
+        </div>
+        <h1 class="text-3xl font-bold">新規セキュリティレビュー</h1>
+        <p class="mt-2" style="color:var(--text-secondary)">AIエージェントがコードを多角的に分析します</p>
+      </div>
+
+      <!-- レビュー対象タイプ -->
+      <div class="glass rounded-2xl p-6 mb-5">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="target" class="w-4 h-4" style="color:var(--accent-blue)"></i>
+          <h2 class="font-semibold">レビュー対象タイプ</h2>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <label class="cursor-pointer">
+            <input type="radio" name="review-type" value="github" checked onchange="changeReviewType('github')" class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border);min-height:110px">
+              <i data-lucide="folder-git-2" class="w-5 h-5 mb-2" style="color:var(--text-secondary)"></i>
+              <div class="font-semibold text-sm">GitHub</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">リポジトリURL</div>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="review-type" value="code" onchange="changeReviewType('code')" class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border);min-height:110px">
+              <i data-lucide="code-2" class="w-5 h-5 mb-2" style="color:var(--text-secondary)"></i>
+              <div class="font-semibold text-sm">コード</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">直接貼り付け</div>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="review-type" value="url" onchange="changeReviewType('url')" class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border);min-height:110px">
+              <i data-lucide="globe" class="w-5 h-5 mb-2" style="color:var(--text-secondary)"></i>
+              <div class="font-semibold text-sm">URL</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">動的スキャン</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- 動的フォーム: GitHub -->
+      <div id="form-github" class="dynamic-form glass rounded-2xl p-6 mb-5">
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3">
+          <i data-lucide="link" class="w-4 h-4" style="color:var(--accent-blue)"></i>
+          リポジトリURL <span style="color:#E11D48">*</span>
+        </label>
+        <div class="relative">
+          <i data-lucide="folder-git-2" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style="color:var(--text-tertiary)"></i>
+          <input type="text" value="https://github.com/example/my-bi-tool" class="w-full rounded-xl pl-11 pr-4 py-3 font-mono text-sm transition" />
+        </div>
+        <p class="text-xs mt-2 flex items-center gap-1" style="color:var(--text-tertiary)">
+          <i data-lucide="info" class="w-3 h-3"></i>パブリックリポジトリのみ対応
+        </p>
+
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3 mt-5">
+          <i data-lucide="git-branch" class="w-4 h-4" style="color:var(--accent-purple)"></i>
+          ブランチ
+        </label>
+        <input type="text" value="main" class="w-full rounded-xl px-4 py-3 font-mono text-sm transition" />
+      </div>
+
+      <!-- 動的フォーム: コード貼り付け -->
+      <div id="form-code" class="dynamic-form glass rounded-2xl p-6 mb-5" style="display:none">
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3">
+          <i data-lucide="file-code" class="w-4 h-4" style="color:var(--accent-blue)"></i>
+          ファイル名 <span class="text-xs font-normal" style="color:var(--text-tertiary)">(任意)</span>
+        </label>
+        <input type="text" placeholder="例: users.js" class="w-full rounded-xl px-4 py-3 font-mono text-sm transition mb-5" />
+
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3">
+          <i data-lucide="code-2" class="w-4 h-4" style="color:var(--accent-purple)"></i>
+          言語
+        </label>
+        <select class="w-full rounded-xl px-4 py-3 text-sm transition mb-5">
+          <option>自動判定</option>
+          <option>JavaScript</option>
+          <option>TypeScript</option>
+          <option>Python</option>
+          <option>Java</option>
+          <option>Go</option>
+        </select>
+
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3">
+          <i data-lucide="clipboard-paste" class="w-4 h-4" style="color:var(--accent-cyan)"></i>
+          ソースコード <span style="color:#E11D48">*</span>
+        </label>
+        <textarea rows="10" placeholder="ここにレビューしたいコードを貼り付けてください..." class="w-full rounded-xl px-4 py-3 font-mono text-sm transition resize-y"></textarea>
+        <p class="text-xs mt-2 flex items-center gap-1" style="color:var(--text-tertiary)">
+          <i data-lucide="info" class="w-3 h-3"></i>最大10,000行までサポート
+        </p>
+      </div>
+
+      <!-- 動的フォーム: URL（動的スキャン） -->
+      <div id="form-url" class="dynamic-form glass rounded-2xl p-6 mb-5" style="display:none">
+        <div class="rounded-xl p-4 mb-5 flex items-start gap-3" style="background:rgba(234,88,12,0.1);border:1px solid rgba(234,88,12,0.3)">
+          <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5 shrink-0" style="color:#EA580C"></i>
+          <div class="text-sm">
+            <div class="font-semibold mb-1" style="color:#EA580C">動的スキャンには所有確認が必要です</div>
+            <div style="color:var(--text-secondary)">他人のサイトへの無断スキャンは違法となる可能性があります。<br/>必ずご自身が所有・管理するURLを指定してください。</div>
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3">
+          <i data-lucide="globe" class="w-4 h-4" style="color:var(--accent-blue)"></i>
+          スキャン対象URL <span style="color:#E11D48">*</span>
+        </label>
+        <div class="relative">
+          <i data-lucide="globe" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style="color:var(--text-tertiary)"></i>
+          <input type="text" placeholder="https://your-app.example.com" class="w-full rounded-xl pl-11 pr-4 py-3 font-mono text-sm transition" />
+        </div>
+
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3 mt-5">
+          <i data-lucide="shield-check" class="w-4 h-4" style="color:var(--accent-purple)"></i>
+          所有確認方式
+        </label>
+        <div class="space-y-2">
+          <label class="cursor-pointer flex items-start gap-3 p-3 rounded-xl border transition" style="border-color:var(--border)">
+            <input type="radio" name="verify-method" checked class="mt-1" />
+            <div>
+              <div class="font-semibold text-sm">HTMLメタタグ</div>
+              <div class="text-xs mt-1 mb-2" style="color:var(--text-tertiary)">指定のメタタグをサイトの &lt;head&gt; に追加</div>
+              <code class="text-xs px-2 py-1 rounded font-mono inline-block" style="background:var(--bg-elevated);color:var(--accent-cyan)">&lt;meta name="ai-sec-verify" content="abc123xyz" /&gt;</code>
+            </div>
+          </label>
+          <label class="cursor-pointer flex items-start gap-3 p-3 rounded-xl border transition" style="border-color:var(--border)">
+            <input type="radio" name="verify-method" class="mt-1" />
+            <div>
+              <div class="font-semibold text-sm">DNS TXTレコード</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">ドメインの DNS に TXT レコードを追加</div>
+            </div>
+          </label>
+        </div>
+        <button class="mt-4 w-full px-4 py-2.5 rounded-xl border text-sm font-semibold transition inline-flex items-center justify-center gap-2 hover:opacity-80" style="border-color:var(--accent-blue);color:var(--accent-blue)">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>所有確認を実行
+        </button>
+
+        <label class="flex items-center gap-2 text-sm font-semibold mb-3 mt-5">
+          <i data-lucide="settings-2" class="w-4 h-4" style="color:var(--accent-cyan)"></i>
+          スキャンタイプ
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="cursor-pointer">
+            <input type="radio" name="scan-type" checked class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border)">
+              <div class="font-semibold text-sm">Baseline Scan</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">受動的・5分程度</div>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="scan-type" class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border)">
+              <div class="font-semibold text-sm">Full Scan</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">能動的・20-30分</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- レビュー観点 -->
+      <div class="glass rounded-2xl p-6 mb-5">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="layers" class="w-4 h-4" style="color:var(--accent-cyan)"></i>
+          <h2 class="font-semibold">レビュー観点 <span class="text-xs font-normal" style="color:var(--text-tertiary)">(複数選択可)</span></h2>
+        </div>
+        <div class="space-y-3">
+          <label class="flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition" style="border-color:var(--border)">
+            <input type="checkbox" checked class="mt-1" style="accent-color:var(--accent-blue)" />
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-sm">OWASP ASVS 網羅性チェック</span>
+                <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(79,139,255,0.2);color:var(--accent-blue)">推奨</span>
+              </div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">AIエージェントが仕様観点でレビュー</div>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition" style="border-color:var(--border)">
+            <input type="checkbox" checked class="mt-1" style="accent-color:var(--accent-blue)" />
+            <div class="flex-1">
+              <div class="font-semibold text-sm">静的解析 (Semgrep)</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">既知の脆弱性パターンをコード検索</div>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition" style="border-color:var(--border)">
+            <input type="checkbox" class="mt-1" style="accent-color:var(--accent-blue)" />
+            <div class="flex-1">
+              <div class="font-semibold text-sm">動的スキャン (OWASP ZAP)</div>
+              <div class="text-xs mt-1 flex items-center gap-1" style="color:#EA580C">
+                <i data-lucide="alert-triangle" class="w-3 h-3"></i>URL所有確認が必要
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- レビュー深度 -->
+      <div class="glass rounded-2xl p-6 mb-8">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="gauge" class="w-4 h-4" style="color:var(--accent-purple)"></i>
+          <h2 class="font-semibold">レビュー深度</h2>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <label class="cursor-pointer">
+            <input type="radio" name="depth" class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition text-center peer-checked:bg-purple-500/10 peer-checked:border-purple-400" style="border-color:var(--border)">
+              <i data-lucide="zap" class="w-5 h-5 mx-auto mb-2" style="color:var(--text-secondary)"></i>
+              <div class="font-semibold text-sm">クイック</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">〜5分</div>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="depth" checked class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition text-center relative peer-checked:bg-purple-500/10 peer-checked:border-purple-400" style="border-color:var(--border)">
+              <span class="absolute -top-2 -right-2 text-xs px-2 py-0.5 rounded-full text-white" style="background:linear-gradient(135deg, var(--accent-blue), var(--accent-purple))">推奨</span>
+              <i data-lucide="target" class="w-5 h-5 mx-auto mb-2" style="color:var(--accent-purple)"></i>
+              <div class="font-semibold text-sm">標準</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">〜10分</div>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="depth" class="peer sr-only" />
+            <div class="rounded-xl border p-4 transition text-center peer-checked:bg-purple-500/10 peer-checked:border-purple-400" style="border-color:var(--border)">
+              <i data-lucide="microscope" class="w-5 h-5 mx-auto mb-2" style="color:var(--text-secondary)"></i>
+              <div class="font-semibold text-sm">詳細</div>
+              <div class="text-xs mt-1" style="color:var(--text-tertiary)">〜20分</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button onclick="showScreen('dashboard')" class="px-6 py-3 rounded-xl border transition hover:opacity-80" style="border-color:var(--border)">キャンセル</button>
+        <button onclick="showScreen('progress')" class="btn-gradient px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2">
+          <i data-lucide="play" class="w-4 h-4"></i>レビューを開始
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============ 4. レビュー実行中 ============ -->
+<div id="screen-progress" class="screen">
+  <div class="layout-with-nav">
+    <div class="screen-content p-8 max-w-4xl">
+      <div class="mb-8">
+        <div class="flex items-center gap-2 text-xs mb-2" style="color:var(--accent-blue)">
+          <span class="relative flex w-2 h-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background:var(--accent-blue)"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2" style="background:var(--accent-blue)"></span>
+          </span>
+          <span class="uppercase tracking-wider font-semibold">AI Agents Working</span>
+        </div>
+        <h1 class="text-3xl font-bold">レビュー実行中</h1>
+        <p class="mt-2 font-mono text-sm" style="color:var(--text-secondary)">my-bi-tool / main</p>
+      </div>
+
+      <!-- 全体プログレス -->
+      <div class="glass rounded-2xl p-6 mb-6">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm" style="color:var(--text-secondary)">全体進捗</span>
+          <span class="text-2xl font-bold gradient-text">72%</span>
+        </div>
+        <div class="w-full h-2 rounded-full overflow-hidden relative" style="background:var(--border)">
+          <div class="h-full rounded-full relative" style="width:72%;background:linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-cyan))">
+            <div class="absolute inset-0 shimmer"></div>
+          </div>
+        </div>
+        <div class="flex justify-between mt-3 text-xs font-mono" style="color:var(--text-tertiary)">
+          <span>経過 3分24秒</span>
+          <span>残り約 1分20秒</span>
+        </div>
+      </div>
+
+      <!-- エージェント別ステータス -->
+      <div class="space-y-3 mb-6">
+        <div class="glass rounded-2xl p-5 flex items-start gap-4">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:rgba(22,163,74,0.2)">
+            <i data-lucide="check" class="w-5 h-5" style="color:#16A34A"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-semibold">📥 リポジトリ取得</div>
+                <div class="text-xs mt-1 font-mono" style="color:var(--text-tertiary)">78 files · 4,231 lines · 12s</div>
+              </div>
+              <span class="text-xs px-2 py-1 rounded-full font-semibold" style="background:rgba(22,163,74,0.2);color:#16A34A">完了</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass rounded-2xl p-5 flex items-start gap-4">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:rgba(22,163,74,0.2)">
+            <i data-lucide="check" class="w-5 h-5" style="color:#16A34A"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-semibold">🧠 SpecComplianceAgent</div>
+                <div class="text-xs mt-1" style="color:var(--text-tertiary)">OWASP ASVS 14カテゴリを評価</div>
+                <div class="flex gap-2 mt-2 text-xs">
+                  <span class="px-2 py-0.5 rounded badge-critical">🔴 2</span>
+                  <span class="px-2 py-0.5 rounded badge-high">🟠 4</span>
+                  <span class="px-2 py-0.5 rounded badge-medium">🟡 8</span>
+                </div>
+              </div>
+              <span class="text-xs px-2 py-1 rounded-full font-semibold" style="background:rgba(22,163,74,0.2);color:#16A34A">完了</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl p-5 flex items-start gap-4 pulse-glow" style="background:rgba(79,139,255,0.08);border:1px solid rgba(79,139,255,0.4)">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:rgba(79,139,255,0.2)">
+            <i data-lucide="loader-2" class="w-5 h-5 spin-slow" style="color:var(--accent-blue)"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <div class="font-semibold flex items-center gap-2">🔍 SastAnalysisAgent
+                  <span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:rgba(79,139,255,0.2);color:var(--accent-blue)">running</span>
+                </div>
+                <div class="text-xs mt-1" style="color:var(--text-secondary)">Semgrep 実行中... (245ルール適用)</div>
+              </div>
+            </div>
+            <div class="w-full h-1.5 rounded-full overflow-hidden" style="background:var(--border)">
+              <div class="h-full rounded-full relative" style="width:67%;background:linear-gradient(90deg, var(--accent-blue), var(--accent-cyan))">
+                <div class="absolute inset-0 shimmer"></div>
+              </div>
+            </div>
+            <div class="text-xs mt-1 font-mono" style="color:var(--text-tertiary)">67%</div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl p-5 flex items-start gap-4 opacity-50" style="border:1px solid var(--border)">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:var(--bg-elevated)">
+            <i data-lucide="pause" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-semibold" style="color:var(--text-secondary)">📝 ReportSynthesizerAgent</div>
+                <div class="text-xs mt-1" style="color:var(--text-tertiary)">各エージェント結果の統合とサマリ生成</div>
+              </div>
+              <span class="text-xs px-2 py-1 rounded-full" style="background:var(--bg-elevated);color:var(--text-tertiary)">待機中</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ライブログ -->
+      <div class="glass rounded-2xl overflow-hidden mb-6">
+        <div class="px-5 py-3 border-b flex items-center justify-between" style="border-color:var(--border)">
+          <div class="flex items-center gap-2">
+            <i data-lucide="terminal" class="w-4 h-4" style="color:var(--text-tertiary)"></i>
+            <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary)">Live Log</span>
+          </div>
+          <div class="flex gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full" style="background:rgba(239,68,68,0.5)"></span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background:rgba(234,179,8,0.5)"></span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background:rgba(34,197,94,0.5)"></span>
+          </div>
+        </div>
+        <div class="p-5 code-block max-h-48 overflow-y-auto space-y-1" style="background:var(--code-bg)">
+          <div><span style="color:var(--text-tertiary)">[14:26:42]</span> <span style="color:var(--accent-blue)">→</span> Semgrep: src/api/users.js を解析中...</div>
+          <div><span style="color:var(--text-tertiary)">[14:26:43]</span> <span style="color:#EF4444">⚠</span> 検出: 潜在的SQLインジェクション (line 42)</div>
+          <div><span style="color:var(--text-tertiary)">[14:26:44]</span> <span style="color:var(--accent-purple)">🧠</span> AI Agent: 該当ASVS要件を AI Search から取得中...</div>
+          <div><span style="color:var(--text-tertiary)">[14:26:45]</span> <span style="color:var(--accent-cyan)">✓</span> ASVS V5.3.4 取得完了</div>
+          <div><span style="color:var(--text-tertiary)">[14:26:46]</span> <span style="color:var(--accent-blue)">→</span> Semgrep: src/api/products.js を解析中...</div>
+          <div class="animate-pulse" style="color:var(--accent-blue)">▊</div>
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-3">
+        <button onclick="showScreen('dashboard')" class="px-5 py-2.5 rounded-xl border transition hover:opacity-80 text-sm" style="border-color:var(--border)">バックグラウンド実行</button>
+        <button onclick="showScreen('result')" class="btn-gradient px-5 py-2.5 rounded-xl font-semibold inline-flex items-center gap-2 text-sm">
+          <i data-lucide="fast-forward" class="w-4 h-4"></i>結果へ（デモ用スキップ）
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 5. 結果サマリー ============ -->
+<div id="screen-result" class="screen">
+  <div class="layout-with-nav">
+    <div class="screen-content p-8 max-w-5xl">
+      <div class="flex justify-between items-start mb-8">
+        <div>
+          <div class="flex items-center gap-2 text-xs mb-2" style="color:#16A34A">
+            <i data-lucide="check-circle" class="w-3 h-3"></i>
+            <span class="uppercase tracking-wider font-semibold">Review Complete</span>
+          </div>
+          <h1 class="text-3xl font-bold mb-3">レビューレポート</h1>
+          <div class="flex items-center gap-4 text-sm flex-wrap" style="color:var(--text-secondary)">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+              my-bi-tool
+              <span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background:var(--bg-elevated)">main</span>
+            </span>
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="clock" class="w-4 h-4"></i>5分12秒
+            </span>
+            <span class="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full" style="background:rgba(79,139,255,0.15);color:var(--accent-blue)">
+              <i data-lucide="folder-git-2" class="w-3 h-3"></i>GitHub
+            </span>
+            <a class="flex items-center gap-1.5 hover:underline" style="color:var(--accent-blue)">
+              <i data-lucide="external-link" class="w-4 h-4"></i>リポジトリを開く
+            </a>
+          </div>
+        </div>
+        <button onclick="showExportModal()" class="btn-gradient px-4 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2">
+          <i data-lucide="download" class="w-4 h-4"></i>エクスポート
+        </button>
+      </div>
+
+      <!-- スコアカード -->
+      <div class="glass rounded-2xl p-8 mb-8 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl" style="background:rgba(234,88,12,0.1)"></div>
+        <div class="relative grid grid-cols-2 gap-8 items-center">
+          <div>
+            <div class="text-xs uppercase tracking-wider mb-3" style="color:var(--text-tertiary)">総合スコア</div>
+            <div class="flex items-baseline gap-3 mb-2">
+              <span class="text-7xl font-extrabold" style="color:#EA580C">62</span>
+              <span class="text-2xl" style="color:var(--text-tertiary)">/100</span>
+            </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style="background:rgba(234,88,12,0.2);color:#EA580C">
+              <i data-lucide="alert-triangle" class="w-3 h-3"></i>要改善
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between p-3 rounded-xl badge-critical">
+              <div class="flex items-center gap-2"><span class="text-lg">🔴</span><span class="text-sm font-semibold">Critical</span></div>
+              <span class="text-xl font-bold">2</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl badge-high">
+              <div class="flex items-center gap-2"><span class="text-lg">🟠</span><span class="text-sm font-semibold">High</span></div>
+              <span class="text-xl font-bold">5</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl badge-medium">
+              <div class="flex items-center gap-2"><span class="text-lg">🟡</span><span class="text-sm font-semibold">Medium</span></div>
+              <span class="text-xl font-bold">12</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl badge-low">
+              <div class="flex items-center gap-2"><span class="text-lg">🟢</span><span class="text-sm font-semibold">Low</span></div>
+              <span class="text-xl font-bold">8</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 観点別評価 -->
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="layers" class="w-4 h-4" style="color:var(--text-tertiary)"></i>
+        <h2 class="text-sm font-semibold uppercase tracking-wider" style="color:var(--text-secondary)">観点別評価 · OWASP ASVS</h2>
+      </div>
+      <div class="glass rounded-2xl p-6 mb-8 space-y-4">
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4" style="color:#16A34A"></i>V1 アーキテクチャ</span><span class="font-bold font-mono">85%</span></div>
+          <div class="w-full h-1.5 rounded-full overflow-hidden" style="background:var(--border)"><div class="h-full rounded-full" style="width:85%;background:linear-gradient(90deg, #16A34A, #4ADE80)"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-4 h-4" style="color:#EA580C"></i>V2 認証</span><span class="font-bold font-mono" style="color:#EA580C">45%</span></div>
+          <div class="w-full h-1.5 rounded-full overflow-hidden" style="background:var(--border)"><div class="h-full rounded-full" style="width:45%;background:linear-gradient(90deg, #EA580C, #FACC15)"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4" style="color:#16A34A"></i>V3 セッション管理</span><span class="font-bold font-mono">90%</span></div>
+          <div class="w-full h-1.5 rounded-full overflow-hidden" style="background:var(--border)"><div class="h-full rounded-full" style="width:90%;background:linear-gradient(90deg, #16A34A, #4ADE80)"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-4 h-4" style="color:#EA580C"></i>V4 アクセス制御</span><span class="font-bold font-mono" style="color:#EA580C">60%</span></div>
+          <div class="w-full h-1.5 rounded-full overflow-hidden" style="background:var(--border)"><div class="h-full rounded-full" style="width:60%;background:linear-gradient(90deg, #EA580C, #FACC15)"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2"><span class="flex items-center gap-2"><i data-lucide="x-circle" class="w-4 h-4" style="color:#E11D48"></i>V5 入力検証・エンコーディング</span><span class="font-bold font-mono" style="color:#E11D48">30%</span></div>
+          <div class="w-full h-1.5 rounded-full overflow-hidden" style="background:var(--border)"><div class="h-full rounded-full" style="width:30%;background:linear-gradient(90deg, #E11D48, #F472B6)"></div></div>
+        </div>
+        <div class="text-xs pt-1 text-center" style="color:var(--text-tertiary)">▼ V6〜V14 を展開</div>
+      </div>
+
+      <!-- 指摘事項一覧 -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="list-checks" class="w-4 h-4" style="color:var(--text-tertiary)"></i>
+          <h2 class="text-sm font-semibold uppercase tracking-wider" style="color:var(--text-secondary)">指摘事項一覧</h2>
+          <span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:var(--bg-elevated);color:var(--text-secondary)">27件</span>
+        </div>
+        <div class="flex gap-2">
+          <button class="text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80 inline-flex items-center gap-1.5" style="border-color:var(--border)"><i data-lucide="filter" class="w-3 h-3"></i>絞り込み</button>
+          <button class="text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80 inline-flex items-center gap-1.5" style="border-color:var(--border)"><i data-lucide="arrow-up-down" class="w-3 h-3"></i>並替</button>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div onclick="showScreen('finding-detail')" class="glass rounded-2xl p-5 cursor-pointer transition group" style="border-left:3px solid #E11D48">
+          <div class="flex items-start gap-4">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-md badge-critical shrink-0">CRITICAL</span>
+            <div class="flex-1">
+              <div class="font-semibold mb-1.5">SQLインジェクションの可能性</div>
+              <div class="flex items-center gap-3 text-xs font-mono" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="file" class="w-3 h-3"></i>src/api/users.js:42</span>
+                <span class="flex items-center gap-1"><i data-lucide="book-open" class="w-3 h-3"></i>ASVS V5.3.4 · CWE-89</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+
+        <div onclick="showScreen('finding-detail')" class="glass rounded-2xl p-5 cursor-pointer transition group" style="border-left:3px solid #E11D48">
+          <div class="flex items-start gap-4">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-md badge-critical shrink-0">CRITICAL</span>
+            <div class="flex-1">
+              <div class="font-semibold mb-1.5">ハードコードされた認証情報</div>
+              <div class="flex items-center gap-3 text-xs font-mono" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="file" class="w-3 h-3"></i>src/config/db.js:8</span>
+                <span class="flex items-center gap-1"><i data-lucide="book-open" class="w-3 h-3"></i>ASVS V2.10.4 · CWE-798</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+
+        <div onclick="showScreen('finding-detail')" class="glass rounded-2xl p-5 cursor-pointer transition group" style="border-left:3px solid #EA580C">
+          <div class="flex items-start gap-4">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-md badge-high shrink-0">HIGH</span>
+            <div class="flex-1">
+              <div class="font-semibold mb-1.5">CSRF対策が未実装</div>
+              <div class="flex items-center gap-3 text-xs font-mono" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="file" class="w-3 h-3"></i>src/api/index.js</span>
+                <span class="flex items-center gap-1"><i data-lucide="book-open" class="w-3 h-3"></i>ASVS V4.2.2 · CWE-352</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+
+        <div onclick="showScreen('finding-detail')" class="glass rounded-2xl p-5 cursor-pointer transition group" style="border-left:3px solid #EA580C">
+          <div class="flex items-start gap-4">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-md badge-high shrink-0">HIGH</span>
+            <div class="flex-1">
+              <div class="font-semibold mb-1.5">XSSの可能性（出力エスケープ漏れ）</div>
+              <div class="flex items-center gap-3 text-xs font-mono" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="file" class="w-3 h-3"></i>src/components/Dashboard.jsx:115</span>
+                <span class="flex items-center gap-1"><i data-lucide="book-open" class="w-3 h-3"></i>ASVS V5.3.3 · CWE-79</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+
+        <div onclick="showScreen('finding-detail')" class="glass rounded-2xl p-5 cursor-pointer transition group" style="border-left:3px solid #CA8A04">
+          <div class="flex items-start gap-4">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-md badge-medium shrink-0">MEDIUM</span>
+            <div class="flex-1">
+              <div class="font-semibold mb-1.5">不適切なエラーハンドリング（スタックトレース露出）</div>
+              <div class="flex items-center gap-3 text-xs font-mono" style="color:var(--text-tertiary)">
+                <span class="flex items-center gap-1"><i data-lucide="file" class="w-3 h-3"></i>src/api/middleware.js:23</span>
+                <span class="flex items-center gap-1"><i data-lucide="book-open" class="w-3 h-3"></i>ASVS V7.4.1 · CWE-209</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-5 h-5" style="color:var(--text-tertiary)"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between mt-8 pt-6 border-t" style="border-color:var(--border)">
+        <button onclick="showScreen('history')" class="px-5 py-2.5 rounded-xl border transition hover:opacity-80 text-sm inline-flex items-center gap-2" style="border-color:var(--border)">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>履歴に戻る
+        </button>
+        <button onclick="showRereviewModal('my-bi-tool', 'main', 'ASVS / SAST', '標準')" class="btn-gradient px-5 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>再レビュー
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============ 6. 指摘事項詳細 ============ -->
+<div id="screen-finding-detail" class="screen">
+  <div class="layout-with-nav">
+    <div class="screen-content p-8 max-w-4xl">
+      <button onclick="showScreen('result')" class="mb-6 inline-flex items-center gap-2 text-sm transition hover:opacity-70" style="color:var(--text-secondary)">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>レポートに戻る
+      </button>
+
+      <!-- ヘッダー -->
+      <div class="glass rounded-2xl p-6 mb-6 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl" style="background:rgba(225,29,72,0.1)"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md badge-critical text-xs font-bold">
+              <i data-lucide="alert-octagon" class="w-3 h-3"></i>CRITICAL
+            </div>
+            <div id="resolved-badge" class="hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold" style="background:rgba(22,163,74,0.2);color:#16A34A;border:1px solid rgba(22,163,74,0.3)">
+              <i data-lucide="check-circle" class="w-3 h-3"></i>対応済み
+            </div>
+          </div>
+          <h1 class="text-2xl font-bold">SQLインジェクションの可能性</h1>
+        </div>
+      </div>
+
+      <!-- メタ情報 -->
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="glass rounded-xl p-4">
+          <div class="text-xs mb-2 flex items-center gap-1" style="color:var(--text-tertiary)">
+            <i data-lucide="file" class="w-3 h-3"></i>ファイル
+          </div>
+          <div class="font-mono text-sm">src/api/users.js<span style="color:var(--text-tertiary)">:42</span></div>
+        </div>
+        <div class="glass rounded-xl p-4">
+          <div class="text-xs mb-2 flex items-center gap-1" style="color:var(--text-tertiary)">
+            <i data-lucide="search" class="w-3 h-3"></i>検出元
+          </div>
+          <div class="text-sm">SastAnalysisAgent
+            <div class="text-xs mt-0.5" style="color:var(--text-tertiary)">Semgrep + AI評価</div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4">
+          <div class="text-xs mb-2 flex items-center gap-1" style="color:var(--text-tertiary)">
+            <i data-lucide="book-open" class="w-3 h-3"></i>該当基準
+          </div>
+          <div class="text-sm font-mono">ASVS V5.3.4
+            <div class="text-xs mt-0.5" style="color:var(--text-tertiary)">CWE-89</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 検出されたコード -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-1 h-5 rounded" style="background:#E11D48"></div>
+          <h2 class="font-semibold flex items-center gap-2"><i data-lucide="x" class="w-4 h-4" style="color:#E11D48"></i>検出されたコード</h2>
+        </div>
+        <div class="glass rounded-xl overflow-hidden">
+          <div class="px-4 py-2 border-b flex items-center justify-between" style="border-color:var(--border);background:var(--bg-elevated)">
+            <span class="text-xs font-mono" style="color:var(--text-tertiary)">src/api/users.js</span>
+            <span class="text-xs" style="color:#E11D48">⚠ 脆弱性検出</span>
+          </div>
+          <pre class="code-block p-5 overflow-x-auto" style="background:var(--code-bg)"><code><span style="color:var(--text-tertiary)">40</span>  app.get(<span style="color:#22C55E">'/users/:id'</span>, (req, res) => {
+<span style="color:var(--text-tertiary)">41</span>    const id = req.params.id;
+<span style="background:rgba(225,29,72,0.15);color:#FCA5A5;display:inline-block;width:100%;padding:0 8px;margin:0 -8px"><span style="color:var(--text-tertiary)">42</span>    const query = `SELECT * FROM users</span>
+<span style="background:rgba(225,29,72,0.15);color:#FCA5A5;display:inline-block;width:100%;padding:0 8px;margin:0 -8px"><span style="color:var(--text-tertiary)">43</span>      WHERE id = ${id}`;  <span style="color:#FACC15">// ⚠ 危険</span></span>
+<span style="color:var(--text-tertiary)">44</span>    db.query(query, (err, rows) => {
+<span style="color:var(--text-tertiary)">45</span>      res.json(rows);
+<span style="color:var(--text-tertiary)">46</span>    });
+<span style="color:var(--text-tertiary)">47</span>  });</code></pre>
+        </div>
+      </div>
+
+      <!-- AI解説 -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-1 h-5 rounded" style="background:var(--accent-purple)"></div>
+          <h2 class="font-semibold flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4" style="color:var(--accent-purple)"></i>AI による解説</h2>
+        </div>
+        <div class="rounded-xl p-5" style="background:linear-gradient(135deg, rgba(167,139,250,0.08), rgba(79,139,255,0.08));border:1px solid rgba(167,139,250,0.2)">
+          <p class="mb-3 leading-relaxed">ユーザーから受け取った <code class="px-1.5 py-0.5 rounded font-mono text-sm" style="background:var(--bg-elevated);color:var(--accent-purple)">req.params.id</code> を直接SQL文字列に連結しているため、攻撃者が任意のSQLを実行できる状態です。</p>
+          <div class="rounded-lg p-3 mb-3" style="background:var(--bg-elevated);border:1px solid var(--border)">
+            <div class="text-xs mb-1" style="color:var(--text-tertiary)">攻撃例</div>
+            <code class="font-mono text-sm" style="color:#FCA5A5">GET /users/1 OR 1=1</code>
+            <div class="text-xs mt-1" style="color:var(--text-secondary)">→ 全ユーザー情報が漏洩する可能性</div>
+          </div>
+          <p class="leading-relaxed" style="color:var(--text-secondary)">プリペアドステートメント（パラメータ化クエリ）を使用することで防止できます。</p>
+        </div>
+      </div>
+
+      <!-- 修正案 -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-1 h-5 rounded" style="background:#16A34A"></div>
+          <h2 class="font-semibold flex items-center gap-2"><i data-lucide="check" class="w-4 h-4" style="color:#16A34A"></i>修正案</h2>
+        </div>
+        <div class="glass rounded-xl overflow-hidden relative">
+          <div class="px-4 py-2 border-b flex items-center justify-between" style="border-color:var(--border);background:var(--bg-elevated)">
+            <span class="text-xs font-mono" style="color:var(--text-tertiary)">src/api/users.js</span>
+            <button class="text-xs px-2 py-1 rounded transition hover:opacity-70 inline-flex items-center gap-1.5" style="background:var(--border);color:var(--text-secondary)">
+              <i data-lucide="copy" class="w-3 h-3"></i>コピー
+            </button>
+          </div>
+          <pre class="code-block p-5 overflow-x-auto" style="background:var(--code-bg)"><code><span style="color:var(--text-tertiary)">40</span>  app.get(<span style="color:#22C55E">'/users/:id'</span>, (req, res) => {
+<span style="color:var(--text-tertiary)">41</span>    const id = req.params.id;
+<span style="background:rgba(22,163,74,0.15);color:#86EFAC;display:inline-block;width:100%;padding:0 8px;margin:0 -8px"><span style="color:var(--text-tertiary)">42</span>    const query = <span style="color:#22C55E">'SELECT * FROM users WHERE id = ?'</span>;</span>
+<span style="background:rgba(22,163,74,0.15);color:#86EFAC;display:inline-block;width:100%;padding:0 8px;margin:0 -8px"><span style="color:var(--text-tertiary)">43</span>    db.query(query, [id], (err, rows) => {</span>
+<span style="color:var(--text-tertiary)">44</span>      res.json(rows);
+<span style="color:var(--text-tertiary)">45</span>    });
+<span style="color:var(--text-tertiary)">46</span>  });</code></pre>
+        </div>
+      </div>
+
+      <!-- 参考リンク -->
+      <div class="glass rounded-xl p-5 mb-6">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="book-marked" class="w-4 h-4" style="color:var(--accent-cyan)"></i>
+          <h3 class="font-semibold">参考リンク</h3>
+        </div>
+        <ul class="space-y-2 text-sm">
+          <li><a class="hover:underline inline-flex items-center gap-1.5" style="color:var(--accent-blue)"><i data-lucide="external-link" class="w-3 h-3"></i>OWASP: SQL Injection Prevention Cheat Sheet</a></li>
+          <li><a class="hover:underline inline-flex items-center gap-1.5" style="color:var(--accent-blue)"><i data-lucide="external-link" class="w-3 h-3"></i>OWASP ASVS V5.3.4 詳細</a></li>
+        </ul>
+      </div>
+
+      <!-- アクション -->
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex gap-2">
+          <button id="resolve-btn" onclick="toggleResolve()" class="px-4 py-2 rounded-lg transition hover:opacity-80 text-sm inline-flex items-center gap-2" style="background:rgba(22,163,74,0.2);color:#16A34A;border:1px solid rgba(22,163,74,0.3)">
+            <i data-lucide="check-circle" class="w-4 h-4"></i><span id="resolve-btn-text">対応済みにする</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-between pt-6 border-t" style="border-color:var(--border)">
+        <button class="px-5 py-2.5 rounded-xl border transition hover:opacity-80 text-sm inline-flex items-center gap-2" style="border-color:var(--border)">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>前の指摘
+        </button>
+        <button class="px-5 py-2.5 rounded-xl border transition hover:opacity-80 text-sm inline-flex items-center gap-2" style="border-color:var(--border)">
+          次の指摘<i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 7. レビュー履歴（フィルタ機能付き） ============ -->
+<div id="screen-history" class="screen">
+  <div class="layout-with-nav">
+    <div class="screen-content p-8 max-w-5xl">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <div class="flex items-center gap-2 text-xs mb-2" style="color:var(--text-tertiary)">
+            <i data-lucide="history" class="w-3 h-3"></i><span class="uppercase tracking-wider">HISTORY</span>
+          </div>
+          <h1 class="text-3xl font-bold">レビュー履歴</h1>
+        </div>
+        <button onclick="showScreen('new-review')" class="btn-gradient px-5 py-2.5 rounded-xl font-semibold inline-flex items-center gap-2 text-sm">
+          <i data-lucide="plus" class="w-4 h-4"></i>新規レビュー
+        </button>
+      </div>
+
+      <!-- 検索 -->
+      <div class="relative mb-4">
+        <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style="color:var(--text-tertiary)"></i>
+        <input id="search-input" type="text" placeholder="リポジトリ名で検索..." oninput="applyFilters()" class="w-full rounded-xl pl-11 pr-4 py-3 text-sm transition" />
+      </div>
+
+      <!-- フィルタ -->
+      <div class="flex gap-2 mb-4 text-sm flex-wrap items-center">
+        <!-- 期間フィルタ -->
+        <div class="relative">
+          <button onclick="toggleDropdown('period')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 inline-flex items-center gap-1.5" style="border-color:var(--border)">
+            <i data-lucide="calendar" class="w-3 h-3"></i>
+            <span id="period-label">全期間</span>
+            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+          </button>
+          <div id="dropdown-period" class="hidden absolute top-full left-0 mt-1 z-20 glass-strong rounded-xl py-2 min-w-[180px] shadow-lg" style="border:1px solid var(--border-strong)">
+            <a onclick="selectFilter('period', 'all', '全期間')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">全期間</a>
+            <a onclick="selectFilter('period', 'today', '今日')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">今日</a>
+            <a onclick="selectFilter('period', '7days', '過去7日間')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">過去7日間</a>
+            <a onclick="selectFilter('period', '30days', '過去30日間')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">過去30日間</a>
+            <a onclick="selectFilter('period', '90days', '過去90日間')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">過去90日間</a>
+          </div>
+        </div>
+
+        <!-- スコアフィルタ -->
+        <div class="relative">
+          <button onclick="toggleDropdown('score')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 inline-flex items-center gap-1.5" style="border-color:var(--border)">
+            <i data-lucide="bar-chart-2" class="w-3 h-3"></i>
+            <span id="score-label">全スコア</span>
+            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+          </button>
+          <div id="dropdown-score" class="hidden absolute top-full left-0 mt-1 z-20 glass-strong rounded-xl py-2 min-w-[200px] shadow-lg" style="border:1px solid var(--border-strong)">
+            <a onclick="selectFilter('score', 'all', '全スコア')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">全スコア</a>
+            <a onclick="selectFilter('score', 'excellent', '優秀 (80-100)')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">
+              <span style="color:#16A34A">🟢</span> 優秀 (80-100)
+            </a>
+            <a onclick="selectFilter('score', 'good', '良好 (60-79)')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">
+              <span style="color:#CA8A04">🟡</span> 良好 (60-79)
+            </a>
+            <a onclick="selectFilter('score', 'warning', '要改善 (40-59)')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">
+              <span style="color:#EA580C">🟠</span> 要改善 (40-59)
+            </a>
+            <a onclick="selectFilter('score', 'danger', '危険 (0-39)')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">
+              <span style="color:#E11D48">🔴</span> 危険 (0-39)
+            </a>
+          </div>
+        </div>
+
+        <!-- 観点フィルタ -->
+        <div class="relative">
+          <button onclick="toggleDropdown('aspect')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 inline-flex items-center gap-1.5" style="border-color:var(--border)">
+            <i data-lucide="layers" class="w-3 h-3"></i>
+            <span id="aspect-label">全観点</span>
+            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+          </button>
+          <div id="dropdown-aspect" class="hidden absolute top-full left-0 mt-1 z-20 glass-strong rounded-xl py-2 min-w-[240px] shadow-lg" style="border:1px solid var(--border-strong)">
+            <a onclick="selectFilter('aspect', 'all', '全観点')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">全観点</a>
+            <a onclick="selectFilter('aspect', 'asvs', 'OWASP ASVS')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">
+              <i data-lucide="file-search" class="w-3 h-3 inline" style="color:var(--accent-blue)"></i> OWASP ASVS 網羅性
+            </a>
+            <a onclick="selectFilter('aspect', 'sast', '静的解析')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">
+              <i data-lucide="scan-line" class="w-3 h-3 inline" style="color:var(--accent-cyan)"></i> 静的解析 (Semgrep)
+            </a>
+            <a onclick="selectFilter('aspect', 'dast', '動的スキャン')" class="block px-4 py-2 text-sm cursor-pointer transition hover-row">
+              <i data-lucide="radar" class="w-3 h-3 inline" style="color:#F472B6"></i> 動的スキャン (ZAP)
+            </a>
+          </div>
+        </div>
+
+        <!-- クリアボタン -->
+        <button id="clear-filters" onclick="clearAllFilters()" class="hidden px-3 py-1.5 rounded-lg border transition hover:opacity-80 inline-flex items-center gap-1.5 text-xs" style="border-color:var(--accent-blue);color:var(--accent-blue)">
+          <i data-lucide="x" class="w-3 h-3"></i>クリア
+        </button>
+      </div>
+
+      <!-- 結果件数表示 -->
+      <div class="mb-4 text-xs" style="color:var(--text-tertiary)">
+        <span id="result-count">3件</span>のレビュー
+      </div>
+
+      <!-- リスト -->
+      <div id="history-list" class="space-y-3">
+        <div class="history-card glass rounded-2xl p-5 transition"
+             data-name="my-bi-tool" data-date="today" data-score="62" data-aspects="asvs,sast">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4 flex-1">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg, rgba(234,88,12,0.2), rgba(225,29,72,0.2))">
+                <i data-lucide="folder-git-2" class="w-5 h-5" style="color:#EA580C"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-semibold">my-bi-tool</span>
+                  <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--bg-elevated);color:var(--text-tertiary)">main</span>
+                </div>
+                <div class="text-xs flex items-center gap-3" style="color:var(--text-tertiary)">
+                  <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>2025-XX-XX 14:23</span>
+                  <span class="flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3"></i>5分12秒</span>
+                  <span style="color:#E11D48">●2</span>
+                  <span style="color:#EA580C">●5</span>
+                  <span style="color:#CA8A04">●12</span>
+                  <span style="color:#16A34A">●8</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="text-right"><div class="text-2xl font-bold" style="color:#EA580C">62</div><div class="text-xs" style="color:var(--text-tertiary)">/100</div></div>
+              <div class="flex gap-1">
+                <button onclick="showScreen('result')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style="border-color:var(--border)">詳細</button>
+                <button onclick="showRereviewModal('my-bi-tool', 'main', 'ASVS / SAST', '標準')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style="border-color:var(--border)">再レビュー</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="history-card glass rounded-2xl p-5 transition"
+             data-name="my-bi-tool" data-date="today" data-score="45" data-aspects="asvs,sast">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4 flex-1">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg, rgba(225,29,72,0.2), rgba(244,114,182,0.2))">
+                <i data-lucide="folder-git-2" class="w-5 h-5" style="color:#E11D48"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-semibold">my-bi-tool</span>
+                  <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--bg-elevated);color:var(--text-tertiary)">main</span>
+                </div>
+                <div class="text-xs flex items-center gap-3" style="color:var(--text-tertiary)">
+                  <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>2025-XX-XX 10:15</span>
+                  <span class="flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3"></i>4分58秒</span>
+                  <span style="color:#E11D48">●4</span>
+                  <span style="color:#EA580C">●8</span>
+                  <span style="color:#CA8A04">●15</span>
+                  <span style="color:#16A34A">●6</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="text-right"><div class="text-2xl font-bold" style="color:#E11D48">45</div><div class="text-xs" style="color:var(--text-tertiary)">/100</div></div>
+              <div class="flex gap-1">
+                <button onclick="showScreen('result')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style="border-color:var(--border)">詳細</button>
+                <button onclick="showRereviewModal('my-bi-tool', 'main', 'ASVS / SAST', '標準')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style="border-color:var(--border)">再レビュー</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="history-card glass rounded-2xl p-5 transition"
+             data-name="sample-api" data-date="today" data-score="78" data-aspects="asvs,sast,dast">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4 flex-1">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg, rgba(22,163,74,0.2), rgba(8,145,178,0.2))">
+                <i data-lucide="folder-git-2" class="w-5 h-5" style="color:#16A34A"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-semibold">sample-api</span>
+                  <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--bg-elevated);color:var(--text-tertiary)">develop</span>
+                </div>
+                <div class="text-xs flex items-center gap-3" style="color:var(--text-tertiary)">
+                  <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>2025-XX-XX 09:00</span>
+                  <span class="flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3"></i>6分30秒</span>
+                  <span style="color:#EA580C">●3</span>
+                  <span style="color:#CA8A04">●8</span>
+                  <span style="color:#16A34A">●5</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="text-right"><div class="text-2xl font-bold" style="color:#16A34A">78</div><div class="text-xs" style="color:var(--text-tertiary)">/100</div></div>
+              <div class="flex gap-1">
+                <button onclick="showScreen('result')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style="border-color:var(--border)">詳細</button>
+                <button onclick="showRereviewModal('sample-api', 'develop', 'ASVS / SAST / DAST', '詳細')" class="px-3 py-1.5 rounded-lg border transition hover:opacity-80 text-xs" style="border-color:var(--border)">再レビュー</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 0件メッセージ -->
+      <div id="no-results" class="hidden text-center py-12">
+        <i data-lucide="search-x" class="w-12 h-12 mx-auto mb-3" style="color:var(--text-tertiary)"></i>
+        <p class="text-sm" style="color:var(--text-secondary)">該当するレビューが見つかりません</p>
+        <button onclick="clearAllFilters()" class="mt-3 text-xs" style="color:var(--accent-blue)">フィルタをクリア</button>
+      </div>
+
+      <!-- ページネーション -->
+      <div class="flex justify-center gap-1 mt-8">
+        <button class="w-9 h-9 rounded-lg border transition hover:opacity-80 inline-flex items-center justify-center" style="border-color:var(--border)">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        </button>
+        <button class="w-9 h-9 rounded-lg btn-gradient font-semibold text-sm">1</button>
+        <button class="w-9 h-9 rounded-lg border transition hover:opacity-80 text-sm" style="border-color:var(--border)">2</button>
+        <button class="w-9 h-9 rounded-lg border transition hover:opacity-80 text-sm" style="border-color:var(--border)">3</button>
+        <button class="w-9 h-9 rounded-lg border transition hover:opacity-80 inline-flex items-center justify-center" style="border-color:var(--border)">
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /pt-12 -->
+<!-- ============ エクスポートモーダル ============ -->
+<div id="export-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(8px)">
+  <div class="modal-panel glass-strong rounded-2xl max-w-md w-full overflow-hidden glow-blue flex flex-col" style="max-height:90vh">
+    <div class="flex justify-between items-center p-5 border-b" style="border-color:var(--border)">
+      <div class="flex items-center gap-2">
+        <i data-lucide="download" class="w-5 h-5" style="color:var(--accent-blue)"></i>
+        <h2 class="font-bold">レポートをエクスポート</h2>
+      </div>
+      <button onclick="hideExportModal()" class="w-8 h-8 rounded-lg flex items-center justify-center transition hover:opacity-70" style="color:var(--text-secondary)">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="p-5 overflow-y-auto flex-1">
+      <h3 class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:var(--text-secondary)">出力形式</h3>
+      <div class="grid grid-cols-3 gap-2 mb-6">
+        <label class="cursor-pointer">
+          <input type="radio" name="format" checked class="peer sr-only" />
+          <div class="rounded-xl border p-3 text-center transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border)">
+            <i data-lucide="file-text" class="w-5 h-5 mx-auto mb-1"></i>
+            <div class="text-xs font-semibold">Markdown</div>
+          </div>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="format" class="peer sr-only" />
+          <div class="rounded-xl border p-3 text-center transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border)">
+            <i data-lucide="file" class="w-5 h-5 mx-auto mb-1"></i>
+            <div class="text-xs font-semibold">PDF</div>
+          </div>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="format" class="peer sr-only" />
+          <div class="rounded-xl border p-3 text-center transition peer-checked:bg-blue-500/10 peer-checked:border-blue-400" style="border-color:var(--border)">
+            <i data-lucide="braces" class="w-5 h-5 mx-auto mb-1"></i>
+            <div class="text-xs font-semibold">JSON</div>
+          </div>
+        </label>
+      </div>
+      <h3 class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:var(--text-secondary)">含める内容</h3>
+      <div class="space-y-2">
+        <label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:opacity-80"><input type="checkbox" checked style="accent-color:var(--accent-blue)" /><span class="text-sm">サマリー</span></label>
+        <label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:opacity-80"><input type="checkbox" checked style="accent-color:var(--accent-blue)" /><span class="text-sm">観点別評価</span></label>
+        <label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:opacity-80"><input type="checkbox" checked style="accent-color:var(--accent-blue)" /><span class="text-sm">全指摘事項</span></label>
+        <label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:opacity-80"><input type="checkbox" checked style="accent-color:var(--accent-blue)" /><span class="text-sm">修正案コード</span></label>
+        <label class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:opacity-80"><input type="checkbox" style="accent-color:var(--accent-blue)" /><span class="text-sm" style="color:var(--text-secondary)">AIプロンプト履歴（デバッグ用）</span></label>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 p-5 border-t" style="border-color:var(--border)">
+      <button onclick="hideExportModal()" class="px-4 py-2 rounded-lg border transition hover:opacity-80 text-sm" style="border-color:var(--border)">キャンセル</button>
+      <button onclick="hideExportModal()" class="btn-gradient px-4 py-2 rounded-lg font-semibold text-sm inline-flex items-center gap-2">
+        <i data-lucide="download" class="w-4 h-4"></i>ダウンロード
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 再レビュー確認モーダル ============ -->
+<div id="rereview-modal" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(8px)">
+  <div class="modal-panel glass-strong rounded-2xl max-w-md w-full overflow-hidden glow-blue flex flex-col" style="max-height:90vh">
+
+    <!-- ヘッダー -->
+    <div class="flex justify-between items-center p-5 border-b" style="border-color:var(--border)">
+      <div class="flex items-center gap-2">
+        <i data-lucide="refresh-cw" class="w-5 h-5" style="color:var(--accent-blue)"></i>
+        <h2 class="font-bold">再レビューを実行</h2>
+      </div>
+      <button onclick="hideRereviewModal()" class="w-8 h-8 rounded-lg flex items-center justify-center transition hover:opacity-70" style="color:var(--text-secondary)">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- 本体（スクロール可能） -->
+    <div class="p-5 overflow-y-auto flex-1">
+      <p class="text-sm mb-4" style="color:var(--text-secondary)">以下の設定で再レビューを実行します。</p>
+
+      <div class="space-y-3 mb-5">
+        <!-- リポジトリ（変更不可） -->
+        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:var(--bg-elevated)">
+          <i data-lucide="folder-git-2" class="w-4 h-4" style="color:var(--accent-blue)"></i>
+          <div class="flex-1">
+            <div class="text-xs" style="color:var(--text-tertiary)">リポジトリ</div>
+            <div class="font-semibold text-sm flex items-center gap-2">
+              <span id="rereview-repo">my-bi-tool</span>
+              <span id="rereview-branch" class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--bg-base);color:var(--text-tertiary)">main</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- レビュー観点（プルダウン） -->
+        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:var(--bg-elevated)">
+          <i data-lucide="layers" class="w-4 h-4" style="color:var(--accent-cyan)"></i>
+          <div class="flex-1 relative">
+            <div class="text-xs" style="color:var(--text-tertiary)">レビュー観点</div>
+            <button onclick="toggleDropdown('re-aspects')" class="font-semibold text-sm flex items-center justify-between w-full hover:opacity-80 transition">
+              <span id="re-aspects-label">ASVS / SAST</span>
+              <i data-lucide="chevron-down" class="w-3 h-3"></i>
+            </button>
+            <div id="dropdown-re-aspects" class="hidden absolute top-full left-0 right-0 mt-1 z-30 glass-strong rounded-xl py-2 shadow-lg" style="border:1px solid var(--border-strong)">
+              <label class="flex items-center gap-2 px-3 py-2 cursor-pointer hover-row text-sm">
+                <input type="checkbox" id="re-aspect-asvs" checked onchange="updateAspectsLabel()" style="accent-color:var(--accent-blue)" />
+                <span>OWASP ASVS</span>
+              </label>
+              <label class="flex items-center gap-2 px-3 py-2 cursor-pointer hover-row text-sm">
+                <input type="checkbox" id="re-aspect-sast" checked onchange="updateAspectsLabel()" style="accent-color:var(--accent-blue)" />
+                <span>静的解析 (Semgrep)</span>
+              </label>
+              <label class="flex items-center gap-2 px-3 py-2 cursor-pointer hover-row text-sm">
+                <input type="checkbox" id="re-aspect-dast" onchange="updateAspectsLabel()" style="accent-color:var(--accent-blue)" />
+                <span>動的スキャン (ZAP)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- レビュー深度（プルダウン） -->
+        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:var(--bg-elevated)">
+          <i data-lucide="gauge" class="w-4 h-4" style="color:var(--accent-purple)"></i>
+          <div class="flex-1 relative">
+            <div class="text-xs" style="color:var(--text-tertiary)">レビュー深度</div>
+            <button onclick="toggleDropdown('re-depth')" class="font-semibold text-sm flex items-center justify-between w-full hover:opacity-80 transition">
+              <span id="re-depth-label">標準（〜10分）</span>
+              <i data-lucide="chevron-down" class="w-3 h-3"></i>
+            </button>
+            <div id="dropdown-re-depth" class="hidden absolute top-full left-0 right-0 mt-1 z-30 glass-strong rounded-xl py-2 shadow-lg" style="border:1px solid var(--border-strong)">
+              <a onclick="selectDepth('quick', 'クイック（〜5分）', '5分')" class="block px-3 py-2 cursor-pointer hover-row text-sm">クイック（〜5分）</a>
+              <a onclick="selectDepth('standard', '標準（〜10分）', '10分')" class="block px-3 py-2 cursor-pointer hover-row text-sm">標準（〜10分）</a>
+              <a onclick="selectDepth('detailed', '詳細（〜20分）', '20分')" class="block px-3 py-2 cursor-pointer hover-row text-sm">詳細（〜20分）</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl p-3 flex items-start gap-2 text-sm" style="background:rgba(79,139,255,0.08);border:1px solid rgba(79,139,255,0.2)">
+        <i data-lucide="clock" class="w-4 h-4 mt-0.5 shrink-0" style="color:var(--accent-blue)"></i>
+        <span style="color:var(--text-secondary)">実行には約 <span id="re-estimated-time" class="font-semibold" style="color:var(--text-primary)">10分</span> かかります</span>
+      </div>
+    </div>
+
+    <!-- フッター（固定） -->
+    <div class="flex justify-end gap-2 p-5 border-t" style="border-color:var(--border)">
+      <button onclick="hideRereviewModal()" class="px-4 py-2 rounded-lg border transition hover:opacity-80 text-sm" style="border-color:var(--border)">キャンセル</button>
+      <button onclick="executeRereview()" class="btn-gradient px-4 py-2 rounded-lg font-semibold text-sm inline-flex items-center gap-2">
+        <i data-lucide="play" class="w-4 h-4"></i>実行
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ JavaScript ============ -->
+<script>
+  // ===== デバイス判定 / レスポンシブ状態 =====
+  let isMobileViewport = false;
+  let sidebarCollapsed = false;
+  let sidebarOpen = false;
+
+  function detectDeviceType() {
+    return window.matchMedia('(max-width: 1023px)').matches ? 'mobile' : 'pc';
+  }
+
+  function applyDeviceMode() {
+    const device = detectDeviceType();
+    isMobileViewport = device === 'mobile';
+    document.documentElement.setAttribute('data-device', isMobileViewport ? 'mobile' : 'pc');
+
+    if (isMobileViewport) {
+      document.body.classList.remove('sidebar-collapsed');
+      if (!sidebarOpen) document.body.classList.remove('sidebar-open');
+    } else {
+      sidebarOpen = false;
+      document.body.classList.remove('sidebar-open');
+      document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+    }
+    updateSidebarToggleIcon();
+  }
+
+  function updateSidebarToggleIcon() {
+    const iconName = isMobileViewport ? (sidebarOpen ? 'x' : 'menu') : (sidebarCollapsed ? 'panel-left-open' : 'panel-left-close');
+    document.querySelectorAll('.sidebar-toggle-icon').forEach(icon => {
+      icon.setAttribute('data-lucide', iconName);
+    });
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function toggleSidebar() {
+    if (isMobileViewport) {
+      sidebarOpen = !sidebarOpen;
+      document.body.classList.toggle('sidebar-open', sidebarOpen);
+    } else {
+      sidebarCollapsed = !sidebarCollapsed;
+      document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+    }
+    updateSidebarToggleIcon();
+  }
+
+  function closeSidebar() {
+    if (!isMobileViewport || !sidebarOpen) return;
+    sidebarOpen = false;
+    document.body.classList.remove('sidebar-open');
+    updateSidebarToggleIcon();
+  }
+
+  // ===== テーマ切替 =====
+  function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+  }
+
+  function updateThemeIcon(theme) {
+    const icon = document.getElementById('theme-icon');
+    if (!icon) return;
+    icon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ===== 画面切替 =====
+  function showScreen(name) {
+    closeSidebar();
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    const target = document.getElementById('screen-' + name);
+    if (target) target.classList.add('active');
+    window.scrollTo(0, 0);
+    setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 50);
+  }
+
+　// ===== ログアウト =====
+  function logout() {
+    showToast('ログアウトしました', 'info');
+    setTimeout(() => {
+      showScreen('landing');
+    }, 800);
+  }
+
+
+  // ===== エクスポートモーダル =====
+  function showExportModal() {
+    const modal = document.getElementById('export-modal');
+    if (modal) modal.classList.remove('hidden');
+    setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 50);
+  }
+  function hideExportModal() {
+    const modal = document.getElementById('export-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // ===== 共通レイアウト挿入 =====
+  function wrapWithLayout() {
+    const screens = ['dashboard', 'new-review', 'progress', 'result', 'finding-detail', 'history'];
+    screens.forEach(name => {
+      const screen = document.getElementById('screen-' + name);
+      if (!screen) return;
+      const layoutDiv = screen.querySelector('.layout-with-nav');
+      if (!layoutDiv) return;
+      const headerTpl = document.getElementById('header-template');
+      const sideTpl = document.getElementById('sidenav-template');
+      if (!headerTpl || !sideTpl) return;
+      const content = layoutDiv.innerHTML;
+      layoutDiv.outerHTML = `
+        <div class="app-shell">
+          ${headerTpl.innerHTML}
+          <div class="app-body">
+            <div class="app-sidebar-overlay" onclick="closeSidebar()"></div>
+            ${sideTpl.innerHTML}
+            <main class="app-main min-h-screen">${content}</main>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // ===== レビュー対象タイプの動的フォーム切替 =====
+  function changeReviewType(type) {
+    document.querySelectorAll('.dynamic-form').forEach(f => f.style.display = 'none');
+    const target = document.getElementById('form-' + type);
+    if (target) target.style.display = 'block';
+    setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 50);
+  }
+
+  // ===== 対応済みトグル =====
+  let isResolved = false;
+  function toggleResolve() {
+    isResolved = !isResolved;
+    const btn = document.getElementById('resolve-btn');
+    const btnText = document.getElementById('resolve-btn-text');
+    const badge = document.getElementById('resolved-badge');
+
+    if (isResolved) {
+      btn.style.background = 'var(--bg-elevated)';
+      btn.style.color = 'var(--text-secondary)';
+      btn.style.border = '1px solid var(--border)';
+      btnText.textContent = '未対応に戻す';
+      btn.querySelector('i').setAttribute('data-lucide', 'undo-2');
+      badge.classList.remove('hidden');
+      badge.classList.add('inline-flex');
+      showToast('対応済みにマークしました', 'success');
+    } else {
+      btn.style.background = 'rgba(22,163,74,0.2)';
+      btn.style.color = '#16A34A';
+      btn.style.border = '1px solid rgba(22,163,74,0.3)';
+      btnText.textContent = '対応済みにする';
+      btn.querySelector('i').setAttribute('data-lucide', 'check-circle');
+      badge.classList.add('hidden');
+      badge.classList.remove('inline-flex');
+      showToast('未対応に戻しました', 'info');
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ===== トースト通知 =====
+  function showToast(message, type) {
+    const colors = {
+      success: { bg: 'rgba(22,163,74,0.15)', color: '#16A34A', icon: 'check-circle' },
+      info: { bg: 'rgba(79,139,255,0.15)', color: 'var(--accent-blue)', icon: 'info' },
+      error: { bg: 'rgba(225,29,72,0.15)', color: '#E11D48', icon: 'x-circle' }
+    };
+    const c = colors[type] || colors.info;
+
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-6 right-6 z-50 glass-strong rounded-xl px-4 py-3 flex items-center gap-2 text-sm font-semibold';
+    toast.style.cssText = `background:${c.bg};color:${c.color};border:1px solid ${c.color};animation:fade-in-up 0.3s ease-out`;
+    toast.innerHTML = `<i data-lucide="${c.icon}" class="w-4 h-4"></i><span>${message}</span>`;
+    document.body.appendChild(toast);
+    if (window.lucide) lucide.createIcons();
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
+
+  // ===== 履歴フィルタ =====
+  let currentFilters = {
+    period: 'all',
+    score: 'all',
+    aspect: 'all'
+  };
+
+  function toggleDropdown(name) {
+    document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+      if (d.id !== 'dropdown-' + name) d.classList.add('hidden');
+    });
+    const dropdown = document.getElementById('dropdown-' + name);
+    if (dropdown) dropdown.classList.toggle('hidden');
+  }
+
+  function selectFilter(type, value, label) {
+    currentFilters[type] = value;
+    document.getElementById(type + '-label').textContent = label;
+    document.getElementById('dropdown-' + type).classList.add('hidden');
+    applyFilters();
+  }
+
+  function clearAllFilters() {
+    currentFilters = { period: 'all', score: 'all', aspect: 'all' };
+    document.getElementById('period-label').textContent = '全期間';
+    document.getElementById('score-label').textContent = '全スコア';
+    document.getElementById('aspect-label').textContent = '全観点';
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = '';
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const searchInput = document.getElementById('search-input');
+    const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const cards = document.querySelectorAll('.history-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const name = (card.dataset.name || '').toLowerCase();
+      const date = card.dataset.date || '';
+      const score = parseInt(card.dataset.score || '0', 10);
+      const aspects = (card.dataset.aspects || '').split(',');
+
+      if (searchText && !name.includes(searchText)) {
+        card.style.display = 'none';
+        return;
+      }
+
+      if (currentFilters.period !== 'all') {
+        if (currentFilters.period === 'today' && date !== 'today') {
+          card.style.display = 'none';
+          return;
+        }
+      }
+
+      if (currentFilters.score !== 'all') {
+        const inRange = {
+          excellent: score >= 80,
+          good: score >= 60 && score < 80,
+          warning: score >= 40 && score < 60,
+          danger: score < 40
+        }[currentFilters.score];
+        if (!inRange) {
+          card.style.display = 'none';
+          return;
+        }
+      }
+
+      if (currentFilters.aspect !== 'all' && !aspects.includes(currentFilters.aspect)) {
+        card.style.display = 'none';
+        return;
+      }
+
+      card.style.display = '';
+      visibleCount++;
+    });
+
+    const countEl = document.getElementById('result-count');
+    if (countEl) countEl.textContent = visibleCount + '件';
+
+    const noResults = document.getElementById('no-results');
+    const historyList = document.getElementById('history-list');
+    if (noResults && historyList) {
+      if (visibleCount === 0) {
+        noResults.classList.remove('hidden');
+        historyList.classList.add('hidden');
+      } else {
+        noResults.classList.add('hidden');
+        historyList.classList.remove('hidden');
+      }
+    }
+
+    const isFiltered = currentFilters.period !== 'all' ||
+                       currentFilters.score !== 'all' ||
+                       currentFilters.aspect !== 'all' ||
+                       searchText !== '';
+    const clearBtn = document.getElementById('clear-filters');
+    if (clearBtn) {
+      if (isFiltered) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+    }
+  }
+
+  // ===== 再レビュー確認モーダル =====
+  function showRereviewModal(repo, branch, aspects, depth) {
+    document.getElementById('rereview-repo').textContent = repo;
+    document.getElementById('rereview-branch').textContent = branch;
+
+    const aspectsLower = aspects.toLowerCase();
+    document.getElementById('re-aspect-asvs').checked = aspectsLower.includes('asvs');
+    document.getElementById('re-aspect-sast').checked = aspectsLower.includes('sast');
+    document.getElementById('re-aspect-dast').checked = aspectsLower.includes('dast');
+    updateAspectsLabel();
+
+    if (depth === 'クイック') selectDepth('quick', 'クイック（〜5分）', '5分');
+    else if (depth === '詳細') selectDepth('detailed', '詳細（〜20分）', '20分');
+    else selectDepth('standard', '標準（〜10分）', '10分');
+
+    document.getElementById('rereview-modal').classList.remove('hidden');
+    setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 50);
+  }
+
+  function updateAspectsLabel() {
+    const labels = [];
+    if (document.getElementById('re-aspect-asvs').checked) labels.push('ASVS');
+    if (document.getElementById('re-aspect-sast').checked) labels.push('SAST');
+    if (document.getElementById('re-aspect-dast').checked) labels.push('DAST');
+    const labelText = labels.length > 0 ? labels.join(' / ') : '選択なし';
+    document.getElementById('re-aspects-label').textContent = labelText;
+  }
+
+  function selectDepth(value, label, timeStr) {
+    document.getElementById('re-depth-label').textContent = label;
+    document.getElementById('re-estimated-time').textContent = timeStr;
+    document.getElementById('dropdown-re-depth').classList.add('hidden');
+  }
+
+  function hideRereviewModal() {
+    document.getElementById('rereview-modal').classList.add('hidden');
+    document.getElementById('dropdown-re-aspects')?.classList.add('hidden');
+    document.getElementById('dropdown-re-depth')?.classList.add('hidden');
+  }
+
+  function executeRereview() {
+    const aspects = ['re-aspect-asvs', 're-aspect-sast', 're-aspect-dast']
+      .filter(id => document.getElementById(id).checked);
+
+    if (aspects.length === 0) {
+      showToast('レビュー観点を1つ以上選択してください', 'error');
+      return;
+    }
+
+    hideRereviewModal();
+    showScreen('progress');
+  }
+
+  // ===== ドロップダウン外クリックで閉じる =====
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('[id^="dropdown-"]') && !e.target.closest('button[onclick^="toggleDropdown"]')) {
+      document.querySelectorAll('[id^="dropdown-"]').forEach(d => d.classList.add('hidden'));
+    }
+  });
+
+  // ===== 初期化 =====
+  (function init() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+    wrapWithLayout();
+    applyDeviceMode();
+    window.addEventListener('resize', applyDeviceMode);
+    if (window.lucide) lucide.createIcons();
+  })();
+</script>
+
+</body>
+</html>
