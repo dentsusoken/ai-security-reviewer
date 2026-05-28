@@ -44,6 +44,13 @@ param minReplicas int = 1
 @description('Maximum replicas')
 param maxReplicas int = 3
 
+@description('Use quickstart placeholder image (for initial deployment before ACR has images)')
+param useQuickstartImage bool = true
+
+// Quickstart image for initial deployment
+var quickstartImage = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+var actualImage = '${containerRegistryLoginServer}/${imageName}:${imageTag}'
+
 // ============================================================================
 // Container Registry Reference
 // ============================================================================
@@ -78,14 +85,14 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           maxAge: 3600
         }
       }
-      registries: [
+      registries: useQuickstartImage ? [] : [
         {
           server: containerRegistryLoginServer
           username: acr.listCredentials().username
           passwordSecretRef: 'acr-password'
         }
       ]
-      secrets: [
+      secrets: useQuickstartImage ? [] : [
         {
           name: 'acr-password'
           value: acr.listCredentials().passwords[0].value
@@ -96,7 +103,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'api'
-          image: '${containerRegistryLoginServer}/${imageName}:${imageTag}'
+          image: useQuickstartImage ? quickstartImage : actualImage
           resources: {
             cpu: json(cpu)
             memory: memory
