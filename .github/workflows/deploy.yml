@@ -16,10 +16,11 @@ on:
           - prod
 
 env:
-  AZURE_RESOURCE_GROUP: rg-aisecreviewer-${{ inputs.environment || 'dev' }}
+  AZURE_RESOURCE_GROUP: rg-aisecreviewer-dev
   AZURE_LOCATION: japaneast
-  ACR_NAME: craisecreviewer${{ inputs.environment || 'dev' }}
+  ACR_NAME: craisecreviewerdev
   BACKEND_IMAGE: aisecreviewer-api
+  DEPLOY_ENV: dev
 
 jobs:
   # ============================================================================
@@ -28,7 +29,6 @@ jobs:
   deploy-infra:
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment || 'dev' }}
     outputs:
       backend-url: ${{ steps.deploy.outputs.backendUrl }}
       frontend-url: ${{ steps.deploy.outputs.frontendUrl }}
@@ -47,7 +47,7 @@ jobs:
           az group create \
             --name ${{ env.AZURE_RESOURCE_GROUP }} \
             --location ${{ env.AZURE_LOCATION }} \
-            --tags project=ai-security-reviewer environment=${{ inputs.environment || 'dev' }}
+            --tags project=ai-security-reviewer environment=${{ env.DEPLOY_ENV }}
 
       - name: Deploy Bicep
         id: deploy
@@ -56,7 +56,7 @@ jobs:
           resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
           template: ./infra/main.bicep
           parameters: >
-            environment=${{ inputs.environment || 'dev' }}
+            environment=${{ env.DEPLOY_ENV }}
             location=${{ env.AZURE_LOCATION }}
             entraIdTenantId=${{ secrets.AZURE_TENANT_ID }}
             entraIdClientId=${{ secrets.AZURE_CLIENT_ID }}
@@ -69,7 +69,6 @@ jobs:
     name: Deploy Backend
     runs-on: ubuntu-latest
     needs: deploy-infra
-    environment: ${{ inputs.environment || 'dev' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +94,7 @@ jobs:
       - name: Update Container App
         run: |
           az containerapp update \
-            --name ca-aisecreviewer-${{ inputs.environment || 'dev' }}-api \
+            --name ca-aisecreviewer-${{ env.DEPLOY_ENV }}-api \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --image ${{ needs.deploy-infra.outputs.acr-login-server }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
 
@@ -106,7 +105,6 @@ jobs:
     name: Deploy Frontend
     runs-on: ubuntu-latest
     needs: [deploy-infra, deploy-backend]
-    environment: ${{ inputs.environment || 'dev' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -147,7 +145,6 @@ jobs:
     name: Verify Deployment
     runs-on: ubuntu-latest
     needs: [deploy-infra, deploy-backend, deploy-frontend]
-    environment: ${{ inputs.environment || 'dev' }}
 
     steps:
       - name: Health Check - Backend
