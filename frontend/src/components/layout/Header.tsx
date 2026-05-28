@@ -3,10 +3,12 @@ import { PanelLeft, LogOut, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { useAuth } from '../../features/auth';
+import { AIAgentStatusBadge, useAIAgentStatus } from './AIAgentStatusBadge';
 
 export function Header() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const aiStatus = useAIAgentStatus();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -69,6 +71,14 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* AI Agent Status Badge */}
+          <AIAgentStatusBadge
+            status={aiStatus.status}
+            activeReviewId={aiStatus.activeReviewId}
+            progress={aiStatus.progress}
+            pulse={true}
+          />
+
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-bold text-white">
               {getUserInitial()}
