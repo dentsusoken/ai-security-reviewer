@@ -1,0 +1,272 @@
+openapi: 3.0.3
+info:
+  title: AI Security Reviewer API
+  version: 0.1.0
+  description: API contract overview for review orchestration, progress streaming, findings, history, export, and ownership verification.
+servers:
+  - url: https://api.dev.ai-security-reviewer.example
+security:
+  - bearerAuth: []
+paths:
+  /auth/me:
+    get:
+      summary: Get current authenticated user profile
+      responses:
+        '200':
+          description: Authenticated user profile
+  /reviews:
+    post:
+      summary: Create and start a review session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        '202':
+          description: Review accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateReviewResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Ownership verification failed for URL scan
+  /reviews/{reviewSessionId}:
+    get:
+      summary: Get review session summary and status
+      parameters:
+        - $ref: '#/components/parameters/ReviewSessionId'
+      responses:
+        '200':
+          description: Review summary
+  /reviews/{reviewSessionId}/events:
+    get:
+      summary: Stream review progress events (SSE)
+      parameters:
+        - $ref: '#/components/parameters/ReviewSessionId'
+      responses:
+        '200':
+          description: text/event-stream progress feed
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /reviews/{reviewSessionId}/cancel:
+    post:
+      summary: Cancel running review
+      parameters:
+        - $ref: '#/components/parameters/ReviewSessionId'
+      responses:
+        '202':
+          description: Cancellation requested
+  /reviews/{reviewSessionId}/findings:
+    get:
+      summary: List findings for a review
+      parameters:
+        - $ref: '#/components/parameters/ReviewSessionId'
+      responses:
+        '200':
+          description: Findings list
+  /findings/{findingId}/status:
+    patch:
+      summary: Update finding in-session status
+      parameters:
+        - name: findingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resolutionState]
+              properties:
+                resolutionState:
+                  type: string
+                  enum: [open, resolved]
+      responses:
+        '200':
+          description: Updated
+  /history:
+    get:
+      summary: Search and filter review history
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [all, today, 7d, 30d, 90d]
+        - name: scoreRange
+          in: query
+          schema:
+            type: string
+            enum: [all, excellent, good, warning, danger]
+        - name: perspective
+          in: query
+          schema:
+            type: string
+            enum: [all, ASVS, SAST, DAST]
+      responses:
+        '200':
+          description: Filtered history list
+  /reviews/{reviewSessionId}/rerun:
+    post:
+      summary: Start rerun based on existing review context
+      parameters:
+        - $ref: '#/components/parameters/ReviewSessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                perspectives:
+                  type: array
+                  items:
+                    type: string
+                    enum: [ASVS, SAST, DAST]
+                depth:
+                  type: string
+                  enum: [quick, standard, detailed]
+      responses:
+        '202':
+          description: Rerun accepted
+  /exports:
+    post:
+      summary: Request report export artifact generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '202':
+          description: Export job accepted
+  /exports/{exportJobId}:
+    get:
+      summary: Get export job status/result
+      parameters:
+        - name: exportJobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Export job status
+  /ownership/challenge:
+    post:
+      summary: Create ownership verification challenge for URL target
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetUrl, method]
+              properties:
+                targetUrl:
+                  type: string
+                  format: uri
+                method:
+                  type: string
+                  enum: [html-meta, dns-txt]
+      responses:
+        '200':
+          description: Challenge issued
+  /ownership/verify:
+    post:
+      summary: Verify URL ownership challenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetUrl, challengeToken]
+              properties:
+                targetUrl:
+                  type: string
+                  format: uri
+                challengeToken:
+                  type: string
+      responses:
+        '200':
+          description: Verification status
+components:
+  parameters:
+    ReviewSessionId:
+      name: reviewSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    CreateReviewRequest:
+      type: object
+      required: [inputType, perspectives, depth]
+      properties:
+        inputType:
+          type: string
+          enum: [github, code, url]
+        repoUrl:
+          type: string
+          format: uri
+        branch:
+          type: string
+          default: main
+        fileName:
+          type: string
+        languageHint:
+          type: string
+        code:
+          type: string
+        targetUrl:
+          type: string
+          format: uri
+        perspectives:
+          type: array
+          items:
+            type: string
+            enum: [ASVS, SAST, DAST]
+        depth:
+          type: string
+          enum: [quick, standard, detailed]
+    CreateReviewResponse:
+      type: object
+      properties:
+        reviewSessionId:
+          type: string
+        status:
+          type: string
+    ExportRequest:
+      type: object
+      required: [reviewSessionId, format, sections]
+      properties:
+        reviewSessionId:
+          type: string
+        format:
+          type: string
+          enum: [markdown, pdf, json]
+        sections:
+          type: array
+          items:
+            type: string
+            enum: [summary, perspectiveRatings, findings, remediationCode, promptHistory]
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
