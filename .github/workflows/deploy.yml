@@ -98,15 +98,19 @@ jobs:
           ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv)
           ACR_SERVER="${{ env.ACR_NAME }}.azurecr.io"
 
-          # Update Container App with new image and registry
+          # Configure registry for Container App
+          az containerapp registry set \
+            --name ca-aisecreviewer-${{ env.DEPLOY_ENV }}-api \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --server "${ACR_SERVER}" \
+            --username "${ACR_USERNAME}" \
+            --password "${ACR_PASSWORD}"
+
+          # Update Container App with new image
           az containerapp update \
             --name ca-aisecreviewer-${{ env.DEPLOY_ENV }}-api \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --image "${ACR_SERVER}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}" \
-            --set-env-vars "ENVIRONMENT=${{ env.DEPLOY_ENV }}" \
-            --registry-server "${ACR_SERVER}" \
-            --registry-username "${ACR_USERNAME}" \
-            --registry-password "${ACR_PASSWORD}"
+            --image "${ACR_SERVER}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}"
 
   # ============================================================================
   # Frontend Deployment
