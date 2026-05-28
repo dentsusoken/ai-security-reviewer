@@ -19,4 +19,11 @@ export const historyApi = {
   getHistory(filters?: HistoryFilters): Promise<HistoryResponse> {
     return apiClient.get<HistoryResponse>('/api/history', filters as Record<string, string | undefined>);
   },
+
+  /**
+   * List review history (alias for getHistory)
+   */
+  list(filters?: HistoryFilters): Promise<HistoryResponse> {
+    return apiClient.get<HistoryResponse>('/api/history', filters as Record<string, string | undefined>);
+  },
 };
