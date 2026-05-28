@@ -68,6 +68,22 @@ class Settings(BaseModel):
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     log_format: str = os.getenv("LOG_FORMAT", "json")
 
+    # Azure Cosmos DB settings
+    azure_cosmos_endpoint: str = os.getenv("AZURE_COSMOS_ENDPOINT", "")
+    azure_cosmos_database: str = os.getenv(
+        "AZURE_COSMOS_DATABASE", "ai-security-reviewer"
+    )
+
+    # Application Insights
+    applicationinsights_connection_string: str = os.getenv(
+        "APPLICATIONINSIGHTS_CONNECTION_STRING", ""
+    )
+
+    @property
+    def cosmos_enabled(self) -> bool:
+        """Check if Cosmos DB is configured."""
+        return bool(self.azure_cosmos_endpoint)
+
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
