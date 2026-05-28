@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Simple secret detection for pre-commit hook."""
+
 import re
 import sys
 from pathlib import Path
@@ -22,12 +23,15 @@ EXCLUDE_PATTERNS = [
     "build",
     "__pycache__",
     "docs",  # Exclude docs directory (includes examples)
+    "mock_data.py",  # Exclude mock data (contains sample vulnerable code for demo)
 ]
+
 
 def is_excluded(path):
     """Check if path should be excluded from scanning."""
     parts = Path(path).parts
     return any(part in EXCLUDE_PATTERNS for part in parts)
+
 
 def scan_file(filepath):
     """Scan a single file for secrets."""
@@ -40,6 +44,7 @@ def scan_file(filepath):
     except Exception:
         pass
     return False, None
+
 
 def main():
     """Scan files for secrets."""
@@ -58,6 +63,7 @@ def main():
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

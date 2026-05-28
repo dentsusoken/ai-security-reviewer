@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from openai import AzureOpenAI
@@ -12,7 +12,7 @@ load_dotenv()
 
 
 # Security review system prompt
-SECURITY_REVIEW_PROMPT = '''
+SECURITY_REVIEW_PROMPT = """
 You are a senior security engineer expert in OWASP ASVS standards.
 Analyze the provided source code for security vulnerabilities.
 
@@ -57,7 +57,7 @@ IMPORTANT:
 - Map findings to ASVS requirements and CWE IDs accurately
 - Be thorough but realistic - only report actual vulnerabilities
 - If no vulnerabilities found, return empty findings array with high scores
-'''
+"""
 
 
 class OpenAIService:
@@ -97,20 +97,26 @@ class OpenAIService:
             Structured analysis results
         """
         if progress_callback:
-            await progress_callback("analyzing_code", {
-                "message": "GPT-4o によるセキュリティ解析を開始...",
-            })
+            await progress_callback(
+                "analyzing_code",
+                {
+                    "message": "GPT-4o によるセキュリティ解析を開始...",
+                },
+            )
 
         # Build code content for analysis
         code_content = self._format_code_for_analysis(code_files)
 
         if progress_callback:
-            await progress_callback("agent_progress", {
-                "agent_name": "SpecComplianceAgent",
-                "status": "running",
-                "progress_percent": 30,
-                "message": "OWASP ASVS カテゴリを評価中...",
-            })
+            await progress_callback(
+                "agent_progress",
+                {
+                    "agent_name": "SpecComplianceAgent",
+                    "status": "running",
+                    "progress_percent": 30,
+                    "message": "OWASP ASVS カテゴリを評価中...",
+                },
+            )
 
         # Call Azure OpenAI
         try:
@@ -126,41 +132,45 @@ class OpenAIService:
             )
 
             if progress_callback:
-                await progress_callback("agent_progress", {
-                    "agent_name": "SpecComplianceAgent",
-                    "status": "running",
-                    "progress_percent": 80,
-                    "message": "解析結果を処理中...",
-                })
+                await progress_callback(
+                    "agent_progress",
+                    {
+                        "agent_name": "SpecComplianceAgent",
+                        "status": "running",
+                        "progress_percent": 80,
+                        "message": "解析結果を処理中...",
+                    },
+                )
 
             # Parse response
             content = response.choices[0].message.content
             result = json.loads(content)
 
             if progress_callback:
-                await progress_callback("agent_progress", {
-                    "agent_name": "SpecComplianceAgent",
-                    "status": "completed",
-                    "progress_percent": 100,
-                    "message": "解析完了",
-                })
+                await progress_callback(
+                    "agent_progress",
+                    {
+                        "agent_name": "SpecComplianceAgent",
+                        "status": "completed",
+                        "progress_percent": 100,
+                        "message": "解析完了",
+                    },
+                )
 
             return result
 
         except json.JSONDecodeError as e:
-            raise ValueError(f"Failed to parse AI response as JSON: {e}")
+            raise ValueError(f"Failed to parse AI response as JSON: {e}") from e
         except Exception as e:
-            raise RuntimeError(f"Azure OpenAI API error: {e}")
+            raise RuntimeError(f"Azure OpenAI API error: {e}") from e
 
-    def _format_code_for_analysis(
-        self, code_files: list[dict[str, str]]
-    ) -> str:
+    def _format_code_for_analysis(self, code_files: list[dict[str, str]]) -> str:
         """Format code files for AI analysis prompt."""
         parts = ["Please analyze the following code files for security vulnerabilities:\n"]
 
         for file in code_files:
             parts.append(f"\n--- File: {file['path']} ---\n")
-            parts.append(file['content'])
+            parts.append(file["content"])
             parts.append("\n")
 
         parts.append("\nAnalyze all files above and provide a comprehensive security review.")
@@ -183,7 +193,7 @@ class OpenAIService:
 
 
 # Singleton instance
-_openai_service: Optional[OpenAIService] = None
+_openai_service: OpenAIService | None = None
 
 
 def get_openai_service() -> OpenAIService:

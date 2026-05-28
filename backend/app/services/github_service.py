@@ -3,7 +3,6 @@
 import base64
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 import httpx
 
@@ -26,7 +25,7 @@ class RepoInfo:
     repo: str
     branch: str
     default_branch: str
-    description: Optional[str]
+    description: str | None
     file_count: int
 
 
@@ -72,7 +71,7 @@ MAX_FILES = 10  # Maximum files to analyze
 class GitHubService:
     """Service for fetching code from GitHub repositories."""
 
-    def __init__(self, token: Optional[str] = None):
+    def __init__(self, token: str | None = None):
         """Initialize with optional GitHub token for higher rate limits."""
         self.base_url = "https://api.github.com"
         self.headers = {
@@ -82,7 +81,7 @@ class GitHubService:
         if token:
             self.headers["Authorization"] = f"token {token}"
 
-    def parse_github_url(self, url: str) -> tuple[str, str, Optional[str]]:
+    def parse_github_url(self, url: str) -> tuple[str, str, str | None]:
         """Parse GitHub URL to extract owner, repo, and optional branch.
 
         Supports:
@@ -119,9 +118,7 @@ class GitHubService:
             response.raise_for_status()
             return response.json()
 
-    async def get_file_tree(
-        self, owner: str, repo: str, branch: str
-    ) -> list[dict]:
+    async def get_file_tree(self, owner: str, repo: str, branch: str) -> list[dict]:
         """Get recursive file tree for a branch."""
         async with httpx.AsyncClient() as client:
             response = await client.get(
@@ -133,9 +130,7 @@ class GitHubService:
             data = response.json()
             return data.get("tree", [])
 
-    async def get_file_content(
-        self, owner: str, repo: str, path: str, branch: str
-    ) -> str:
+    async def get_file_content(self, owner: str, repo: str, path: str, branch: str) -> str:
         """Get decoded content of a single file."""
         async with httpx.AsyncClient() as client:
             response = await client.get(
@@ -160,14 +155,14 @@ class GitHubService:
                 return True
         return False
 
-    def _get_file_extension(self, path: str) -> Optional[str]:
+    def _get_file_extension(self, path: str) -> str | None:
         """Get file extension if supported."""
         for ext in SUPPORTED_EXTENSIONS:
             if path.endswith(ext):
                 return ext
         return None
 
-    async def fetch_repository_files(
+    async def fetch_repository_files(  # noqa: C901
         self,
         url: str,
         progress_callback=None,
@@ -185,9 +180,9 @@ class GitHubService:
         owner, repo, branch = self.parse_github_url(url)
 
         if progress_callback:
-            await progress_callback("fetching_repo", {
-                "message": f"リポジトリ情報を取得中: {owner}/{repo}"
-            })
+            await progress_callback(
+                "fetching_repo", {"message": f"リポジトリ情報を取得中: {owner}/{repo}"}
+            )
 
         # Get repo info
         repo_data = await self.get_repo_info(owner, repo)
@@ -195,9 +190,9 @@ class GitHubService:
         branch = branch or default_branch
 
         if progress_callback:
-            await progress_callback("fetching_tree", {
-                "message": f"ファイルツリーを取得中 (branch: {branch})"
-            })
+            await progress_callback(
+                "fetching_tree", {"message": f"ファイルツリーを取得中 (branch: {branch})"}
+            )
 
         # Get file tree
         tree = await self.get_file_tree(owner, repo, branch)
@@ -224,42 +219,50 @@ class GitHubService:
             if size > MAX_FILE_SIZE:
                 continue
 
-            code_files_info.append({
-                "path": path,
-                "size": size,
-                "language": SUPPORTED_EXTENSIONS[ext],
-            })
+            code_files_info.append(
+                {
+                    "path": path,
+                    "size": size,
+                    "language": SUPPORTED_EXTENSIONS[ext],
+                }
+            )
 
         # Sort by size (smaller first) and limit
         code_files_info.sort(key=lambda x: x["size"])
         code_files_info = code_files_info[:MAX_FILES]
 
         if progress_callback:
-            await progress_callback("files_found", {
-                "message": f"{len(code_files_info)} 件のコードファイルを検出",
-                "file_count": len(code_files_info),
-            })
+            await progress_callback(
+                "files_found",
+                {
+                    "message": f"{len(code_files_info)} 件のコードファイルを検出",
+                    "file_count": len(code_files_info),
+                },
+            )
 
         # Fetch file contents
         code_files = []
         for i, file_info in enumerate(code_files_info):
             if progress_callback:
-                await progress_callback("fetching_file", {
-                    "message": f"ファイル取得中: {file_info['path']} ({i+1}/{len(code_files_info)})",
-                    "current": i + 1,
-                    "total": len(code_files_info),
-                })
+                await progress_callback(
+                    "fetching_file",
+                    {
+                        "message": f"ファイル取得中: {file_info['path']} ({i + 1}/{len(code_files_info)})",
+                        "current": i + 1,
+                        "total": len(code_files_info),
+                    },
+                )
 
             try:
-                content = await self.get_file_content(
-                    owner, repo, file_info["path"], branch
+                content = await self.get_file_content(owner, repo, file_info["path"], branch)
+                code_files.append(
+                    CodeFile(
+                        path=file_info["path"],
+                        content=content,
+                        size=file_info["size"],
+                        language=file_info["language"],
+                    )
                 )
-                code_files.append(CodeFile(
-                    path=file_info["path"],
-                    content=content,
-                    size=file_info["size"],
-                    language=file_info["language"],
-                ))
             except Exception as e:
                 # Skip files that can't be fetched
                 print(f"Warning: Could not fetch {file_info['path']}: {e}")
@@ -275,9 +278,12 @@ class GitHubService:
         )
 
         if progress_callback:
-            await progress_callback("files_fetched", {
-                "message": f"コード取得完了: {len(code_files)} ファイル",
-                "file_count": len(code_files),
-            })
+            await progress_callback(
+                "files_fetched",
+                {
+                    "message": f"コード取得完了: {len(code_files)} ファイル",
+                    "file_count": len(code_files),
+                },
+            )
 
         return repo_info, code_files

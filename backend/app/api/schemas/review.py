@@ -1,7 +1,6 @@
 """Review-related Pydantic models."""
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -19,12 +18,12 @@ class ReviewCreateRequest(BaseModel):
     """Request body for creating a new review."""
 
     input_type: InputType = Field(alias="inputType")
-    repo_url: Optional[str] = Field(default=None, alias="repoUrl")
-    branch: Optional[str] = None
-    code: Optional[str] = None
-    filename: Optional[str] = None
-    language: Optional[str] = None
-    target_url: Optional[str] = Field(default=None, alias="targetUrl")
+    repo_url: str | None = Field(default=None, alias="repoUrl")
+    branch: str | None = None
+    code: str | None = None
+    filename: str | None = None
+    language: str | None = None
+    target_url: str | None = Field(default=None, alias="targetUrl")
     perspectives: list[Perspective]
     depth: ReviewDepth
 
@@ -62,9 +61,9 @@ class AgentState(BaseModel):
 
     agent_name: AgentName = Field(alias="agentName")
     status: AgentStatus
-    progress_percent: Optional[int] = Field(default=None, alias="progressPercent")
-    current_activity: Optional[str] = Field(default=None, alias="currentActivity")
-    details: Optional[list[str]] = None
+    progress_percent: int | None = Field(default=None, alias="progressPercent")
+    current_activity: str | None = Field(default=None, alias="currentActivity")
+    details: list[str] | None = None
 
     model_config = {"populate_by_name": True, "use_enum_values": True}
 
@@ -75,15 +74,15 @@ class ReviewDetail(BaseModel):
     id: str
     status: ReviewStatus
     input_type: InputType = Field(alias="inputType")
-    repo_url: Optional[str] = Field(default=None, alias="repoUrl")
-    branch: Optional[str] = None
+    repo_url: str | None = Field(default=None, alias="repoUrl")
+    branch: str | None = None
     perspectives: list[Perspective]
     depth: ReviewDepth
-    started_at: Optional[datetime] = Field(default=None, alias="startedAt")
-    completed_at: Optional[datetime] = Field(default=None, alias="completedAt")
-    duration_ms: Optional[int] = Field(default=None, alias="durationMs")
-    score_summary: Optional[ScoreSummary] = Field(default=None, alias="scoreSummary")
-    perspective_scores: Optional[list[PerspectiveScore]] = Field(
+    started_at: datetime | None = Field(default=None, alias="startedAt")
+    completed_at: datetime | None = Field(default=None, alias="completedAt")
+    duration_ms: int | None = Field(default=None, alias="durationMs")
+    score_summary: ScoreSummary | None = Field(default=None, alias="scoreSummary")
+    perspective_scores: list[PerspectiveScore] | None = Field(
         default=None, alias="perspectiveScores"
     )
 

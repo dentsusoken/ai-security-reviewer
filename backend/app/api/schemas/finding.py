@@ -1,7 +1,5 @@
 """Finding-related Pydantic models."""
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 from app.api.schemas.common import ResolutionState, Severity
@@ -14,7 +12,7 @@ class FindingSummary(BaseModel):
     severity: Severity
     title: str
     file_path: str = Field(alias="filePath")
-    line_start: Optional[int] = Field(default=None, alias="lineStart")
+    line_start: int | None = Field(default=None, alias="lineStart")
     asvs_requirement_ids: list[str] = Field(alias="asvsRequirementIds")
     cwe_ids: list[str] = Field(alias="cweIds")
 
@@ -43,8 +41,8 @@ class FindingDetail(BaseModel):
     title: str
     description: str
     file_path: str = Field(alias="filePath")
-    line_start: Optional[int] = Field(default=None, alias="lineStart")
-    line_end: Optional[int] = Field(default=None, alias="lineEnd")
+    line_start: int | None = Field(default=None, alias="lineStart")
+    line_end: int | None = Field(default=None, alias="lineEnd")
     detected_code: str = Field(alias="detectedCode")
     fix_suggestion: str = Field(alias="fixSuggestion")
     ai_explanation: str = Field(alias="aiExplanation")
@@ -66,8 +64,8 @@ class Finding(BaseModel):
     title: str
     description: str
     file_path: str = Field(alias="filePath")
-    line_start: Optional[int] = Field(default=None, alias="lineStart")
-    line_end: Optional[int] = Field(default=None, alias="lineEnd")
+    line_start: int | None = Field(default=None, alias="lineStart")
+    line_end: int | None = Field(default=None, alias="lineEnd")
     resolution_state: ResolutionState = Field(alias="resolutionState")
 
     model_config = {"populate_by_name": True, "use_enum_values": True}

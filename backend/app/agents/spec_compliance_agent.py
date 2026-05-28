@@ -3,7 +3,7 @@
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from app.services.github_service import CodeFile, RepoInfo
 from app.services.openai_service import get_openai_service
@@ -17,8 +17,8 @@ class ReviewResult:
     repo_info: RepoInfo
     status: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
-    duration_ms: Optional[int] = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
 
     # Score summary
     overall_score: int = 0
@@ -34,7 +34,7 @@ class ReviewResult:
     findings: list[dict] = field(default_factory=list)
 
     # Error info
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class SpecComplianceAgent:
@@ -72,15 +72,15 @@ class SpecComplianceAgent:
 
         try:
             # Prepare code for analysis
-            code_for_analysis = [
-                {"path": f.path, "content": f.content}
-                for f in code_files
-            ]
+            code_for_analysis = [{"path": f.path, "content": f.content} for f in code_files]
 
             if progress_callback:
-                await progress_callback("analyzing_code", {
-                    "message": f"SpecComplianceAgent: {len(code_files)} ファイルを解析中...",
-                })
+                await progress_callback(
+                    "analyzing_code",
+                    {
+                        "message": f"SpecComplianceAgent: {len(code_files)} ファイルを解析中...",
+                    },
+                )
 
             # Call AI for analysis
             ai_result = await self.openai_service.analyze_code_security(
@@ -98,9 +98,7 @@ class SpecComplianceAgent:
 
         # Calculate duration
         result.completed_at = datetime.now()
-        result.duration_ms = int(
-            (result.completed_at - result.started_at).total_seconds() * 1000
-        )
+        result.duration_ms = int((result.completed_at - result.started_at).total_seconds() * 1000)
 
         return result
 
@@ -126,20 +124,22 @@ class SpecComplianceAgent:
         processed_findings = []
 
         for i, finding in enumerate(raw_findings):
-            processed_findings.append({
-                "id": finding.get("id", f"f{i+1}"),
-                "severity": finding.get("severity", "medium"),
-                "title": finding.get("title", "セキュリティの問題"),
-                "description": finding.get("description", ""),
-                "file_path": finding.get("file_path", "unknown"),
-                "line_start": finding.get("line_start"),
-                "line_end": finding.get("line_end"),
-                "code_snippet": finding.get("code_snippet", ""),
-                "asvs_requirements": finding.get("asvs_requirements", []),
-                "cwe_ids": finding.get("cwe_ids", []),
-                "remediation": finding.get("remediation", ""),
-                "fixed_code": finding.get("fixed_code", ""),
-            })
+            processed_findings.append(
+                {
+                    "id": finding.get("id", f"f{i + 1}"),
+                    "severity": finding.get("severity", "medium"),
+                    "title": finding.get("title", "セキュリティの問題"),
+                    "description": finding.get("description", ""),
+                    "file_path": finding.get("file_path", "unknown"),
+                    "line_start": finding.get("line_start"),
+                    "line_end": finding.get("line_end"),
+                    "code_snippet": finding.get("code_snippet", ""),
+                    "asvs_requirements": finding.get("asvs_requirements", []),
+                    "cwe_ids": finding.get("cwe_ids", []),
+                    "remediation": finding.get("remediation", ""),
+                    "fixed_code": finding.get("fixed_code", ""),
+                }
+            )
 
         result.findings = processed_findings
 
@@ -147,7 +147,7 @@ class SpecComplianceAgent:
 
 
 # Singleton instance
-_agent: Optional[SpecComplianceAgent] = None
+_agent: SpecComplianceAgent | None = None
 
 
 def get_spec_compliance_agent() -> SpecComplianceAgent:

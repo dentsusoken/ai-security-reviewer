@@ -15,8 +15,8 @@ from pathlib import Path
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
-from dotenv import load_dotenv
-from openai import AzureOpenAI
+from dotenv import load_dotenv  # noqa: E402
+from openai import AzureOpenAI  # noqa: E402
 
 # .env ファイルを読み込み
 load_dotenv(backend_dir / ".env")
@@ -61,7 +61,7 @@ def main():
             model=deployment_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": "Hello"}
+                {"role": "user", "content": "Hello"},
             ],
             max_tokens=100,
             temperature=0.7,
@@ -71,7 +71,7 @@ def main():
         message = response.choices[0].message.content
         print(f"📥 GPT-4o からの応答:\n{message}")
         print("-" * 50)
-        print(f"✅ 接続テスト成功!")
+        print("✅ 接続テスト成功!")
         print(f"   モデル: {response.model}")
         print(f"   使用トークン: {response.usage.total_tokens}")
 

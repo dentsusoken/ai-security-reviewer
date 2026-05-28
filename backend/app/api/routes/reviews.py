@@ -1,20 +1,19 @@
 """Review session endpoints."""
 
-import asyncio
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks
 
 from app.agents.spec_compliance_agent import get_spec_compliance_agent
 from app.api.schemas.common import Perspective, ReviewDepth, ReviewStatus
 from app.api.schemas.finding import FindingsResponse, FindingSummary
 from app.api.schemas.review import (
+    PerspectiveScore,
     ReviewCreateRequest,
     ReviewCreateResponse,
     ReviewDetail,
     ScoreSummary,
-    PerspectiveScore,
 )
 from app.data.mock_data import (
     DEMO_REVIEW_ID,
@@ -61,10 +60,13 @@ async def run_review_task(review_id: str, repo_url: str, branch: str = None):
 
     try:
         # Step 1: Fetch repository files
-        await progress_callback("progress", {
-            "percent": 10,
-            "message": "リポジトリを取得中...",
-        })
+        await progress_callback(
+            "progress",
+            {
+                "percent": 10,
+                "message": "リポジトリを取得中...",
+            },
+        )
 
         repo_info, code_files = await github_service.fetch_repository_files(
             repo_url,
@@ -75,10 +77,13 @@ async def run_review_task(review_id: str, repo_url: str, branch: str = None):
             raise ValueError("解析可能なコードファイルが見つかりませんでした")
 
         # Step 2: Run AI analysis
-        await progress_callback("progress", {
-            "percent": 40,
-            "message": f"GPT-4o でセキュリティ解析中... ({len(code_files)} ファイル)",
-        })
+        await progress_callback(
+            "progress",
+            {
+                "percent": 40,
+                "message": f"GPT-4o でセキュリティ解析中... ({len(code_files)} ファイル)",
+            },
+        )
 
         result = await agent.review(
             repo_info,
@@ -87,25 +92,35 @@ async def run_review_task(review_id: str, repo_url: str, branch: str = None):
         )
 
         # Step 3: Store results
-        await progress_callback("progress", {
-            "percent": 95,
-            "message": "結果を保存中...",
-        })
+        await progress_callback(
+            "progress",
+            {
+                "percent": 95,
+                "message": "結果を保存中...",
+            },
+        )
 
         await manager.set_result(review_id, result)
 
         # Send completion event
-        await progress_callback("completed", {
-            "review_id": review_id,
-            "overall_score": result.overall_score,
-            "findings_count": len(result.findings),
-        })
+        await progress_callback(
+            "completed",
+            {
+                "review_id": review_id,
+                "overall_score": result.overall_score,
+                "findings_count": len(result.findings),
+            },
+        )
 
     except Exception as e:
         await manager.set_error(review_id, str(e))
-        await manager.send_sse_event(review_id, "error", {
-            "message": str(e),
-        })
+        await manager.send_sse_event(
+            review_id,
+            "error",
+            {
+                "message": str(e),
+            },
+        )
 
     finally:
         # Close SSE queue
@@ -238,15 +253,17 @@ async def get_review_findings(review_session_id: str) -> FindingsResponse:
         # Return real findings
         findings = []
         for f in state.result.findings:
-            findings.append(FindingSummary(
-                id=f.get("id", "unknown"),
-                severity=f.get("severity", "medium"),
-                title=f.get("title", "セキュリティの問題"),
-                filePath=f.get("file_path", "unknown"),
-                lineStart=f.get("line_start"),
-                asvsRequirementIds=f.get("asvs_requirements", []),
-                cweIds=f.get("cwe_ids", []),
-            ))
+            findings.append(
+                FindingSummary(
+                    id=f.get("id", "unknown"),
+                    severity=f.get("severity", "medium"),
+                    title=f.get("title", "セキュリティの問題"),
+                    filePath=f.get("file_path", "unknown"),
+                    lineStart=f.get("line_start"),
+                    asvsRequirementIds=f.get("asvs_requirements", []),
+                    cweIds=f.get("cwe_ids", []),
+                )
+            )
         return FindingsResponse(findings=findings)
 
     # Fall back to mock data
