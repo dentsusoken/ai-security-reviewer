@@ -23,6 +23,9 @@ param entraIdTenantId string = ''
 @description('Entra ID client ID for backend API')
 param entraIdClientId string = ''
 
+@description('Enable Azure OpenAI deployment (requires approval)')
+param enableOpenAi bool = false
+
 // Note: Azure OpenAI is provisioned by this template, not passed as parameter
 
 @description('Azure OpenAI deployment name')
@@ -77,8 +80,8 @@ module cosmosDb 'modules/cosmosdb.bicep' = {
   }
 }
 
-// Azure OpenAI for AI analysis
-module openAi 'modules/openai.bicep' = {
+// Azure OpenAI for AI analysis (optional - requires approval)
+module openAi 'modules/openai.bicep' = if (enableOpenAi) {
   name: 'openai-deployment'
   params: {
     name: 'oai-${resourcePrefix}'
@@ -122,17 +125,18 @@ module backendApp 'modules/containerapp.bicep' = {
     imageName: 'aisecreviewer-api'
     imageTag: backendImageTag
     targetPort: 8000
-    envVars: [
+    envVars: concat([
       { name: 'ENVIRONMENT', value: environment }
       { name: 'AUTH_DISABLED', value: 'false' }
       { name: 'AZURE_COSMOS_ENDPOINT', value: cosmosDb.outputs.endpoint }
       { name: 'AZURE_COSMOS_DATABASE', value: cosmosDb.outputs.databaseName }
-      { name: 'AZURE_OPENAI_ENDPOINT', value: openAi.outputs.endpoint }
-      { name: 'AZURE_OPENAI_DEPLOYMENT', value: azureOpenAiDeployment }
       { name: 'ENTRA_TENANT_ID', value: entraIdTenantId }
       { name: 'ENTRA_CLIENT_ID', value: entraIdClientId }
       { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appInsights.outputs.connectionString }
-    ]
+    ], enableOpenAi ? [
+      { name: 'AZURE_OPENAI_ENDPOINT', value: openAi.outputs.endpoint }
+      { name: 'AZURE_OPENAI_DEPLOYMENT', value: azureOpenAiDeployment }
+    ] : [])
   }
   // Dependencies are implicit through parameter references
 }
@@ -170,8 +174,8 @@ module keyVaultRoleAssignment 'modules/keyvault-role-assignment.bicep' = {
   }
 }
 
-// Grant backend app access to Azure OpenAI
-module openAiRoleAssignment 'modules/openai-role-assignment.bicep' = {
+// Grant backend app access to Azure OpenAI (if enabled)
+module openAiRoleAssignment 'modules/openai-role-assignment.bicep' = if (enableOpenAi) {
   name: 'openai-role-assignment'
   params: {
     openAiAccountName: openAi.outputs.name
@@ -201,5 +205,5 @@ output keyVaultUri string = keyVault.outputs.uri
 @description('Application Insights connection string')
 output appInsightsConnectionString string = appInsights.outputs.connectionString
 
-@description('Azure OpenAI endpoint')
-output openAiEndpoint string = openAi.outputs.endpoint
+@description('Azure OpenAI endpoint (empty if not enabled)')
+output openAiEndpoint string = enableOpenAi ? openAi.outputs.endpoint : ''
