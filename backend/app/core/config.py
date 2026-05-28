@@ -23,5 +23,12 @@ class Settings(BaseModel):
     # API settings
     api_prefix: str = ""
 
+    # Azure Entra ID settings
+    azure_tenant_id: str = os.getenv("AZURE_TENANT_ID", "")
+    azure_client_id: str = os.getenv("AZURE_CLIENT_ID", "")
+
+    # Authentication settings
+    auth_disabled: bool = os.getenv("AUTH_DISABLED", "false").lower() == "true"
+
 
 settings = Settings()
