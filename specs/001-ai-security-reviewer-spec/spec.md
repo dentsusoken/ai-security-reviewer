@@ -195,6 +195,20 @@ sign out, and confirm return to landing state.
    is routed to authenticated home.
 2. **Given** an authenticated session, **When** sign-out is requested, **Then** session
    ends and landing screen is shown.
+3. **Given** an unauthenticated visitor, **When** sign-in is initiated, **Then** the
+   application MUST use redirect flow (NOT popup).
+4. **Given** a successful authentication redirect, **When** the application receives
+   the authorization code, **Then** the URL hash MUST be cleared after processing.
+
+**Authentication Flow Details**:
+
+- **Method**: MSAL Redirect Flow (`loginRedirect` / `logoutRedirect`)
+- **Rationale**: Popup-based authentication is blocked by browsers' popup policies
+  and is unreliable across devices. Redirect flow is the recommended approach for SPAs.
+- **Azure AD App Registration**: Redirect URIs MUST be registered under the **SPA**
+  platform (not Web) to support PKCE-based authorization code flow.
+- **Token Caching**: MSAL caches tokens in SessionStorage. Subsequent visits use
+  silent authentication (`acquireTokenSilent`) without prompting the user.
 
 ---
 

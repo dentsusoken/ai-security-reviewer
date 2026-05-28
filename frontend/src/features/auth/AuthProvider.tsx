@@ -81,13 +81,11 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
     }
   }, [instance, accounts, inProgress]);
 
-  // Login function
+  // Login function (uses redirect flow for reliability)
   const login = useCallback(async () => {
     setError(null);
     try {
-      await instance.loginPopup(loginRequest);
-      const activeAccount = instance.getActiveAccount();
-      setUser(accountToUser(activeAccount));
+      await instance.loginRedirect(loginRequest);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
@@ -109,14 +107,13 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
     }
   }, [instance]);
 
-  // Logout function
+  // Logout function (uses redirect flow for reliability)
   const logout = useCallback(async () => {
     setError(null);
     try {
-      await instance.logoutPopup({
+      await instance.logoutRedirect({
         postLogoutRedirectUri: window.location.origin,
       });
-      setUser(null);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
@@ -140,12 +137,12 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
       return response.accessToken;
     } catch (err) {
       console.error('Token acquisition failed:', err);
-      // Try interactive login if silent fails
+      // Try interactive redirect if silent fails (will navigate away)
       try {
-        const response = await instance.acquireTokenPopup(loginRequest);
-        return response.accessToken;
-      } catch (popupErr) {
-        console.error('Interactive token acquisition failed:', popupErr);
+        await instance.acquireTokenRedirect(loginRequest);
+        return null; // Will not reach here as page redirects
+      } catch (redirectErr) {
+        console.error('Interactive token acquisition failed:', redirectErr);
         return null;
       }
     }
