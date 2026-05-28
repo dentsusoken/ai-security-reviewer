@@ -1,16 +1,17 @@
 import { Gauge, Layers, Play, RefreshCw } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import type { HistoryItem } from '../history/HistoryCard';
+import { DEPTH_OPTIONS, useRerunEstimate } from './useRerunEstimate';
 
 interface RereviewModalProps {
   open: boolean;
   onClose: () => void;
   target: HistoryItem | null;
-  onExecute: () => void;
+  onExecute: (options: { depth: ReviewDepth; perspectives: string[] }) => void;
 }
 
-type ReviewDepth = 'quick' | 'standard' | 'detailed';
+type ReviewDepth = 'quick' | 'standard' | 'deep';
 
 export function RereviewModal({ open, onClose, target, onExecute }: RereviewModalProps) {
   const [depth, setDepth] = useState<ReviewDepth>('standard');
@@ -26,11 +27,22 @@ export function RereviewModal({ open, onClose, target, onExecute }: RereviewModa
     });
   }, [target]);
 
-  const estimatedTime = useMemo(() => {
-    if (depth === 'quick') return '5分';
-    if (depth === 'detailed') return '20分';
-    return '10分';
-  }, [depth]);
+  // Build perspectives array from aspects
+  const perspectives = Object.entries(aspects)
+    .filter(([, enabled]) => enabled)
+    .map(([key]) => key);
+
+  // Use dynamic time estimate
+  const estimate = useRerunEstimate({
+    depth,
+    perspectives,
+    repoSize: target?.repoSize,
+    fileCount: target?.fileCount,
+  });
+
+  const handleExecute = () => {
+    onExecute({ depth, perspectives });
+  };
 
   if (!target) return null;
 
@@ -46,8 +58,8 @@ export function RereviewModal({ open, onClose, target, onExecute }: RereviewModa
             キャンセル
           </button>
           <button
-            onClick={onExecute}
-            disabled={!aspects.asvs && !aspects.sast && !aspects.dast}
+            onClick={handleExecute}
+            disabled={perspectives.length === 0}
             className="btn-gradient px-4 py-2 rounded-lg font-semibold text-sm inline-flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Play className="w-4 h-4" />実行
@@ -80,16 +92,28 @@ export function RereviewModal({ open, onClose, target, onExecute }: RereviewModa
         <div className="p-3 rounded-xl" style={{ background: 'var(--bg-elevated)' }}>
           <div className="flex items-center gap-2 mb-2"><Gauge className="w-4 h-4" style={{ color: 'var(--accent-purple)' }} />レビュー深度</div>
           <div className="grid grid-cols-3 gap-2 text-sm">
-            <button type="button" onClick={() => setDepth('quick')} className="rounded-lg border px-2 py-1.5" style={{ borderColor: depth === 'quick' ? 'var(--accent-purple)' : 'var(--border)', background: depth === 'quick' ? 'rgba(167,139,250,0.12)' : 'transparent' }}>クイック</button>
-            <button type="button" onClick={() => setDepth('standard')} className="rounded-lg border px-2 py-1.5" style={{ borderColor: depth === 'standard' ? 'var(--accent-purple)' : 'var(--border)', background: depth === 'standard' ? 'rgba(167,139,250,0.12)' : 'transparent' }}>標準</button>
-            <button type="button" onClick={() => setDepth('detailed')} className="rounded-lg border px-2 py-1.5" style={{ borderColor: depth === 'detailed' ? 'var(--accent-purple)' : 'var(--border)', background: depth === 'detailed' ? 'rgba(167,139,250,0.12)' : 'transparent' }}>詳細</button>
+            {DEPTH_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setDepth(option.value)}
+                className="rounded-lg border px-2 py-1.5 transition-colors"
+                style={{
+                  borderColor: depth === option.value ? 'var(--accent-purple)' : 'var(--border)',
+                  background: depth === option.value ? 'rgba(167,139,250,0.12)' : 'transparent',
+                }}
+                title={option.description}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       <div className="rounded-xl p-3 flex items-start gap-2 text-sm" style={{ background: 'rgba(79,139,255,0.08)', border: '1px solid rgba(79,139,255,0.2)' }}>
         <span style={{ color: 'var(--text-secondary)' }}>
-          実行には約 <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{estimatedTime}</span> かかります
+          実行には約 <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{estimate.displayJa}</span> かかります
         </span>
       </div>
     </Modal>
