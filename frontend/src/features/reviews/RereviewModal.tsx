@@ -36,8 +36,6 @@ export function RereviewModal({ open, onClose, target, onExecute }: RereviewModa
   const estimate = useRerunEstimate({
     depth,
     perspectives,
-    repoSize: target?.repoSize,
-    fileCount: target?.fileCount,
   });
 
   const handleExecute = () => {

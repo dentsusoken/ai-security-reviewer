@@ -4,7 +4,7 @@
  * This provider wraps the application with MSAL authentication context
  * and provides login/logout functionality.
  */
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import {
   MsalProvider,
   useMsal,
@@ -15,11 +15,11 @@ import {
 import {
   PublicClientApplication,
   EventType,
-  AccountInfo,
+  type AccountInfo,
   InteractionStatus,
 } from '@azure/msal-browser';
 import { msalConfig, loginRequest, isMsalConfigured } from './msalConfig';
-import { AuthContext, AuthContextValue, User } from './AuthContext';
+import { AuthContext, type AuthContextValue, type User } from './AuthContext';
 
 // Create MSAL instance
 const msalInstance = new PublicClientApplication(msalConfig);

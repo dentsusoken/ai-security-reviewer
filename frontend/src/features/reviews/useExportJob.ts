@@ -131,7 +131,7 @@ export function useExportJob(): UseExportJobResult {
           ...prev,
           status: 'completed',
           progress: 100,
-          downloadUrl: response.downloadUrl,
+          downloadUrl: response.downloadUrl ?? null,
         }));
         return;
       }

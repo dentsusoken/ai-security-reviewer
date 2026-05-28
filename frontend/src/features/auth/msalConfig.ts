@@ -1,7 +1,7 @@
 /**
  * MSAL configuration for Azure Entra ID authentication.
  */
-import { Configuration, LogLevel, BrowserCacheLocation } from '@azure/msal-browser';
+import { type Configuration, LogLevel, BrowserCacheLocation } from '@azure/msal-browser';
 
 // Environment variables for MSAL configuration
 const clientId = import.meta.env.VITE_AZURE_CLIENT_ID || '';
@@ -17,11 +17,9 @@ export const msalConfig: Configuration = {
     authority: `https://login.microsoftonline.com/${tenantId}`,
     redirectUri,
     postLogoutRedirectUri: window.location.origin,
-    navigateToLoginRequestUrl: true,
   },
   cache: {
     cacheLocation: BrowserCacheLocation.SessionStorage,
-    storeAuthStateInCookie: false,
   },
   system: {
     loggerOptions: {
