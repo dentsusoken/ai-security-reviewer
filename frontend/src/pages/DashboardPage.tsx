@@ -1,57 +1,19 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Zap, BarChart3, FileCheck, AlertTriangle, CheckCircle2, TrendingUp, FolderGit2, Clock, ChevronRight, ArrowRight, Loader2 } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
-import { dashboardApi } from '../services/api';
-import type { DashboardStats } from '../types/api';
+import { useDashboard, formatTimestamp, getRepoName } from '../features/dashboard';
+import { useAuth } from '../features/auth';
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const { user } = useAuth();
+  const { stats, recentReviews, loading, error } = useDashboard();
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        const data = await dashboardApi.getStats();
-        setStats(data);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch dashboard stats:', err);
-        setError('ダッシュボードの読み込みに失敗しました');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboard();
-  }, []);
-
-  // Helper to format duration
-  const _formatDuration = (ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}分${seconds}秒`;
-  };
-  void _formatDuration; // Suppress unused warning
-
-  // Helper to format timestamp
-  const formatTimestamp = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleString('ja-JP', {
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  // Helper to extract repo name from URL
-  const getRepoName = (url: string) => {
-    const parts = url.split('/');
-    return parts[parts.length - 1] || url;
+  // Get user display name
+  const getUserName = () => {
+    if (user?.name) return user.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'テストユーザー';
   };
 
   if (loading) {
@@ -90,7 +52,7 @@ export function DashboardPage() {
           <span>Welcome back</span>
         </div>
         <h1 className="text-3xl font-bold">
-          こんにちは、<span className="gradient-text">テストユーザー</span>さん
+          こんにちは、<span className="gradient-text">{getUserName()}</span>さん
         </h1>
       </div>
 
@@ -216,12 +178,12 @@ export function DashboardPage() {
       </div>
 
       <GlassCard className="rounded-2xl overflow-hidden">
-        {stats.recentReviews.map((review, idx) => (
+        {recentReviews.map((review, idx) => (
           <div
             key={review.id}
             onClick={() => navigate(`/reviews/${review.id}`)}
             className={`p-5 cursor-pointer transition hover-row flex items-center justify-between ${
-              idx < stats.recentReviews.length - 1 ? 'border-b' : ''
+              idx < recentReviews.length - 1 ? 'border-b' : ''
             }`}
             style={{ borderColor: 'var(--border)' }}
           >
