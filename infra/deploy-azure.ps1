@@ -73,9 +73,16 @@ Write-Host "`n[6/8] Updating CORS settings..." -ForegroundColor Yellow
 Write-Host "`n[7/8] Building Frontend..." -ForegroundColor Yellow
 Push-Location $PSScriptRoot\..\frontend
 
-# Update .env.production with backend URL
-$EnvContent = "VITE_API_BASE_URL=$BackendUrl"
-Set-Content -Path ".env.production" -Value $EnvContent
+# Update .env.production with backend URL (preserve existing settings)
+$EnvPath = ".env.production"
+$EnvContent = Get-Content $EnvPath -ErrorAction SilentlyContinue
+if ($EnvContent) {
+  $EnvContent = ($EnvContent | Where-Object { $_ -notmatch "^VITE_API_BASE_URL=" }) -join "`n"
+  $EnvContent = "VITE_API_BASE_URL=$BackendUrl`n$EnvContent"
+} else {
+  $EnvContent = "VITE_API_BASE_URL=$BackendUrl"
+}
+Set-Content -Path $EnvPath -Value $EnvContent
 
 # Build
 npm run build

@@ -24,13 +24,9 @@ import { AuthContext, type AuthContextValue, type User } from './AuthContext';
 // Create MSAL instance
 const msalInstance = new PublicClientApplication(msalConfig);
 
-// Initialize MSAL instance
-msalInstance.initialize().then(() => {
-  // Handle redirect response
-  msalInstance.handleRedirectPromise().catch((error) => {
-    console.error('Redirect error:', error);
-  });
-
+// Track initialization state
+let msalInitialized = false;
+const msalInitPromise = msalInstance.initialize().then(() => {
   // Set active account on login success
   msalInstance.addEventCallback((event) => {
     if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
@@ -44,6 +40,7 @@ msalInstance.initialize().then(() => {
   if (accounts.length > 0) {
     msalInstance.setActiveAccount(accounts[0]);
   }
+  msalInitialized = true;
 });
 
 /**
@@ -213,6 +210,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (!isMsalConfigured()) {
     console.warn('MSAL not configured. Using development authentication mode.');
     return <DevAuthProvider>{children}</DevAuthProvider>;
+  }
+
+  return <MsalInitGate>{children}</MsalInitGate>;
+}
+
+/**
+ * Gate component that waits for MSAL initialization before rendering MsalProvider.
+ * This ensures handleRedirectPromise is processed within the React context.
+ */
+function MsalInitGate({ children }: { children: ReactNode }) {
+  const [ready, setReady] = useState(msalInitialized);
+
+  useEffect(() => {
+    if (!ready) {
+      msalInitPromise.then(() => setReady(true));
+    }
+  }, [ready]);
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-400">認証基盤を初期化中...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
