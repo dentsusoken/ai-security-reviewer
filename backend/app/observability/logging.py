@@ -77,6 +77,15 @@ class StructuredFormatter(logging.Formatter):
         return json.dumps(log_data, default=str)
 
 
+class CorrelationIdFilter(logging.Filter):
+    """Add correlation ID to all log records."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Add correlation_id attribute to the record."""
+        record.correlation_id = get_correlation_id() or "-"
+        return True
+
+
 def setup_logging(level: str = "INFO", json_format: bool = True) -> None:
     """Configure structured logging for the application.
 
@@ -90,9 +99,10 @@ def setup_logging(level: str = "INFO", json_format: bool = True) -> None:
     # Remove existing handlers
     root_logger.handlers.clear()
 
-    # Create handler
+    # Create handler with correlation ID filter
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(getattr(logging, level.upper(), logging.INFO))
+    handler.addFilter(CorrelationIdFilter())
 
     if json_format:
         handler.setFormatter(StructuredFormatter())
@@ -112,15 +122,6 @@ def setup_logging(level: str = "INFO", json_format: bool = True) -> None:
         uvicorn_logger = logging.getLogger(logger_name)
         uvicorn_logger.handlers.clear()
         uvicorn_logger.addHandler(handler)
-
-
-class CorrelationIdFilter(logging.Filter):
-    """Add correlation ID to all log records."""
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        """Add correlation_id attribute to the record."""
-        record.correlation_id = get_correlation_id() or "-"
-        return True
 
 
 def get_logger(name: str) -> logging.Logger:
