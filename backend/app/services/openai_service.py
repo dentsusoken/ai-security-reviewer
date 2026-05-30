@@ -11,7 +11,7 @@ from openai import AzureOpenAI
 load_dotenv()
 
 
-# Security review system prompt
+# Security review system prompt (base)
 SECURITY_REVIEW_PROMPT = """
 You are a senior security engineer expert in OWASP ASVS standards.
 Analyze the provided source code for security vulnerabilities.
@@ -51,13 +51,62 @@ Respond ONLY with valid JSON in this exact format:
 }
 
 IMPORTANT:
-- Find at least 3 findings if any vulnerabilities exist
 - All titles, descriptions, remediation must be in Japanese
 - Code snippets and code examples can be in original language
 - Map findings to ASVS requirements and CWE IDs accurately
 - Be thorough but realistic - only report actual vulnerabilities
 - If no vulnerabilities found, return empty findings array with high scores
 """
+
+
+# Depth-specific prompt hints (appended to base prompt)
+DEPTH_PROMPT_HINTS = {
+    "quick": """
+**Analysis Depth: QUICK**
+
+Focus on OWASP Top 10 critical issues only.
+- ASVS categories to evaluate: V1 (Architecture), V2 (Authentication), V5 (Validation)
+- Find 3-7 findings if vulnerabilities exist
+- Use concise descriptions (max 2 sentences per finding)
+- Prioritize CRITICAL and HIGH severity issues
+""",
+    "standard": """
+**Analysis Depth: STANDARD**
+
+Comprehensive analysis of common security requirements.
+- ASVS categories to evaluate: V1-V7
+  (Architecture, Authentication, Session, Access Control, Validation, Crypto, Errors)
+- Find 10-20 findings if vulnerabilities exist
+- Include detailed remediation guidance
+- Cover all severity levels (CRITICAL/HIGH/MEDIUM/LOW)
+""",
+    "detailed": """
+**Analysis Depth: DETAILED**
+
+Complete ASVS Level 1+2 compliance check with expert-level depth.
+- ASVS categories to evaluate: V1-V14 (ALL OWASP ASVS categories)
+  V1: Architecture
+  V2: Authentication
+  V3: Session Management
+  V4: Access Control
+  V5: Validation, Sanitization, Encoding
+  V6: Stored Cryptography
+  V7: Error Handling and Logging
+  V8: Data Protection
+  V9: Communication
+  V10: Malicious Code
+  V11: Business Logic
+  V12: File and Resources
+  V13: API and Web Service
+  V14: Configuration
+- Find 20+ findings (be thorough)
+- For each finding, include:
+  * Attack scenario (how an attacker would exploit this)
+  * Expert-level remediation with code examples
+  * Cross-reference CWE/CVE IDs
+- Score perspectives strictly based on completeness
+""",
+}
 
 
 # Mock result for demo mode
@@ -144,7 +193,7 @@ MOCK_ANALYSIS_RESULT = {
             "code_snippet": "SESSION_TIMEOUT = None",
             "asvs_requirements": ["V3.3.1"],
             "cwe_ids": ["CWE-613"],
-            "remediation": "適切なセッションタイムアウト（例：30分）を設定してください。",
+            "remediation": "適切なセッションタイムアウト(例:30分)を設定してください。",
             "fixed_code": "SESSION_TIMEOUT = 1800  # 30 minutes",
         },
         {
@@ -193,6 +242,14 @@ MOCK_ANALYSIS_RESULT = {
 }
 
 
+# Depth-specific max_tokens for OpenAI API
+DEPTH_MAX_TOKENS = {
+    "quick": 2000,
+    "standard": 4000,
+    "detailed": 8000,
+}
+
+
 class OpenAIService:
     """Service for Azure OpenAI interactions."""
 
@@ -222,12 +279,14 @@ class OpenAIService:
     async def analyze_code_security(
         self,
         code_files: list[dict[str, str]],
+        depth: str = "standard",
         progress_callback=None,
     ) -> dict[str, Any]:
         """Analyze code files for security vulnerabilities.
 
         Args:
             code_files: List of dicts with 'path' and 'content' keys
+            depth: Review depth (quick/standard/detailed)
             progress_callback: Optional async callback for progress updates
 
         Returns:
@@ -237,13 +296,20 @@ class OpenAIService:
             await progress_callback(
                 "analyzing_code",
                 {
-                    "message": "GPT-4o によるセキュリティ解析を開始...",
+                    "message": f"GPT-4o によるセキュリティ解析を開始 [{depth}]...",
                 },
             )
 
         # Use mock mode if enabled
         if self.mock_mode:
-            return await self._mock_analyze(code_files, progress_callback)
+            return await self._mock_analyze(code_files, depth, progress_callback)
+
+        # Build depth-aware system prompt
+        depth_hint = DEPTH_PROMPT_HINTS.get(depth, DEPTH_PROMPT_HINTS["standard"])
+        system_prompt = SECURITY_REVIEW_PROMPT + "\n" + depth_hint
+
+        # Get depth-specific max_tokens
+        max_tokens = DEPTH_MAX_TOKENS.get(depth, 4000)
 
         # Build code content for analysis
         code_content = self._format_code_for_analysis(code_files)
@@ -255,7 +321,7 @@ class OpenAIService:
                     "agent_name": "SpecComplianceAgent",
                     "status": "running",
                     "progress_percent": 30,
-                    "message": "OWASP ASVS カテゴリを評価中...",
+                    "message": f"OWASP ASVS カテゴリを評価中 [{depth}]...",
                 },
             )
 
@@ -264,11 +330,11 @@ class OpenAIService:
             response = self.client.chat.completions.create(
                 model=self.deployment_name,
                 messages=[
-                    {"role": "system", "content": SECURITY_REVIEW_PROMPT},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": code_content},
                 ],
                 temperature=0.3,
-                max_tokens=4000,
+                max_tokens=max_tokens,
                 response_format={"type": "json_object"},
             )
 
@@ -294,7 +360,7 @@ class OpenAIService:
                         "agent_name": "SpecComplianceAgent",
                         "status": "completed",
                         "progress_percent": 100,
-                        "message": "解析完了",
+                        "message": f"解析完了 [{depth}]",
                     },
                 )
 
@@ -307,23 +373,34 @@ class OpenAIService:
 
     def _format_code_for_analysis(self, code_files: list[dict[str, str]]) -> str:
         """Format code files for AI analysis prompt."""
-        parts = ["Please analyze the following code files for security vulnerabilities:\n"]
+        parts = [
+            "Please analyze the following code files for security vulnerabilities:\n"
+        ]
 
         for file in code_files:
             parts.append(f"\n--- File: {file['path']} ---\n")
             parts.append(file["content"])
             parts.append("\n")
 
-        parts.append("\nAnalyze all files above and provide a comprehensive security review.")
+        parts.append(
+            "\nAnalyze all files above and provide a comprehensive security review."
+        )
 
         return "".join(parts)
 
     async def _mock_analyze(
         self,
         code_files: list[dict[str, str]],
+        depth: str = "standard",
         progress_callback=None,
     ) -> dict[str, Any]:
-        """Return mock analysis results for demo purposes."""
+        """Return mock analysis results for demo purposes.
+
+        Args:
+            code_files: List of code files (used to update file paths)
+            depth: Review depth (affects number of findings returned)
+            progress_callback: Optional progress callback
+        """
         import asyncio
         import copy
 
@@ -335,7 +412,7 @@ class OpenAIService:
                     "agent_name": "SpecComplianceAgent",
                     "status": "running",
                     "progress_percent": 20,
-                    "message": "[デモモード] OWASP ASVS カテゴリを評価中...",
+                    "message": f"[デモモード/{depth}] OWASP ASVS カテゴリを評価中...",
                 },
             )
 
@@ -348,7 +425,7 @@ class OpenAIService:
                     "agent_name": "SpecComplianceAgent",
                     "status": "running",
                     "progress_percent": 50,
-                    "message": "[デモモード] 脆弱性パターンを検出中...",
+                    "message": f"[デモモード/{depth}] 脆弱性パターンを検出中...",
                 },
             )
 
@@ -361,14 +438,35 @@ class OpenAIService:
                     "agent_name": "SpecComplianceAgent",
                     "status": "running",
                     "progress_percent": 80,
-                    "message": "[デモモード] 解析結果を処理中...",
+                    "message": f"[デモモード/{depth}] 解析結果を処理中...",
                 },
             )
 
         await asyncio.sleep(0.5)
 
-        # Create a copy of mock result and customize file paths
+        # Create a copy of mock result
         result = copy.deepcopy(MOCK_ANALYSIS_RESULT)
+
+        # Filter findings by depth (mock behavior)
+        depth_finding_limits = {
+            "quick": 3,       # Only top 3 critical/high
+            "standard": 6,    # Mid-range
+            "detailed": 8,    # All findings
+        }
+        max_findings = depth_finding_limits.get(depth, 6)
+        result["findings"] = result["findings"][:max_findings]
+
+        # Recalculate counts based on filtered findings
+        counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+        for f in result["findings"]:
+            sev = f.get("severity", "low")
+            if sev in counts:
+                counts[sev] += 1
+
+        result["summary"]["critical_count"] = counts["critical"]
+        result["summary"]["high_count"] = counts["high"]
+        result["summary"]["medium_count"] = counts["medium"]
+        result["summary"]["low_count"] = counts["low"]
 
         # Update file paths to match actual files if available
         if code_files:
@@ -383,7 +481,7 @@ class OpenAIService:
                     "agent_name": "SpecComplianceAgent",
                     "status": "completed",
                     "progress_percent": 100,
-                    "message": "[デモモード] 解析完了",
+                    "message": f"[デモモード/{depth}] 解析完了 ({len(result['findings'])} findings)",
                 },
             )
 

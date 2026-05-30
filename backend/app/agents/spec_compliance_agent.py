@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from app.api.schemas.common import Perspective
+from app.core.depth_config import get_depth_config
 from app.services.github_service import CodeFile, RepoInfo
 from app.services.openai_service import get_openai_service
 
@@ -48,6 +50,7 @@ class SpecComplianceAgent:
         self,
         repo_info: RepoInfo,
         code_files: list[CodeFile],
+        depth: str = "standard",
         progress_callback=None,
     ) -> ReviewResult:
         """Perform security review on code files.
@@ -55,11 +58,19 @@ class SpecComplianceAgent:
         Args:
             repo_info: Repository metadata
             code_files: List of code files to review
+            depth: Review depth (quick/standard/detailed)
             progress_callback: Optional async callback for progress updates
 
         Returns:
             ReviewResult with findings and scores
         """
+        # Get depth configuration
+        config = get_depth_config(Perspective.ASVS, depth)
+
+        # Truncate files based on depth's max_files
+        original_count = len(code_files)
+        truncated_files = code_files[: config.max_files]
+
         review_id = str(uuid.uuid4())
         started_at = datetime.now()
 
@@ -72,19 +83,29 @@ class SpecComplianceAgent:
 
         try:
             # Prepare code for analysis
-            code_for_analysis = [{"path": f.path, "content": f.content} for f in code_files]
+            code_for_analysis = [
+                {"path": f.path, "content": f.content} for f in truncated_files
+            ]
 
             if progress_callback:
+                categories_count = (
+                    len(config.ruleset) if isinstance(config.ruleset, list) else 0
+                )
                 await progress_callback(
                     "analyzing_code",
                     {
-                        "message": f"SpecComplianceAgent: {len(code_files)} ファイルを解析中...",
+                        "message": (
+                            f"SpecComplianceAgent [{depth}]: "
+                            f"{len(truncated_files)}/{original_count} ファイルを"
+                            f"{categories_count} ASVSカテゴリで解析中..."
+                        ),
                     },
                 )
 
-            # Call AI for analysis
+            # Call AI for analysis with depth-aware prompts
             ai_result = await self.openai_service.analyze_code_security(
                 code_for_analysis,
+                depth=depth,
                 progress_callback=progress_callback,
             )
 
@@ -98,7 +119,9 @@ class SpecComplianceAgent:
 
         # Calculate duration
         result.completed_at = datetime.now()
-        result.duration_ms = int((result.completed_at - result.started_at).total_seconds() * 1000)
+        result.duration_ms = int(
+            (result.completed_at - result.started_at).total_seconds() * 1000
+        )
 
         return result
 
