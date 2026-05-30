@@ -4,6 +4,8 @@
 
 **Created**: 2026-05-26
 
+**Last Updated**: 2026-05-31
+
 **Status**: Draft
 
 **Input**: User description: "Complete specification for AI Security Reviewer aligned with mockup and constitution v1.1.0"
@@ -18,6 +20,9 @@ The product provides security assessment across three perspectives:
 - ASVS-based specification and implementation coverage review
 - SAST-based static findings review and prioritization
 - DAST-based optional dynamic scan for ownership-verified URLs
+
+Each perspective supports three depth levels (quick, standard, detailed) with
+measurably different scope, execution time, and cost characteristics.
 
 The product value proposition is rapid, evidence-backed security review that a judge can
 understand in 3 minutes, with live progress visibility during execution.
@@ -59,6 +64,11 @@ review execution for inputs up to 10,000 lines.
 
 1. **Given** an authenticated user, **When** they select code input and paste up to
    10,000 lines, **Then** review starts and completes with findings.
+2. **Given** code input with `language="auto"`, **When** review starts, **Then** system
+   detects language using filename, shebang, and content heuristics in priority order.
+3. **Given** explicit language selection (JavaScript/TypeScript/Python/Java/Go),
+   **When** review starts, **Then** system uses selected language regardless of
+   content analysis.
 
 ---
 
@@ -77,6 +87,14 @@ proof and execute baseline/full scan with bounded duration.
    **Then** scan is blocked.
 2. **Given** verified ownership, **When** baseline or full scan is selected, **Then**
    the scan completes within target duration limits.
+3. **Given** verification method "HTML meta tag" is selected, **When** user adds
+   `<meta name="ai-sec-reviewer-verification" content="<token>"/>` to site root,
+   **Then** system fetches and verifies presence within 30 seconds.
+4. **Given** verification method "DNS TXT" is selected, **When** user adds
+   `_aisecreviewer.<domain> IN TXT "<token>"`, **Then** system queries DNS and
+   verifies within 60 seconds (DNS propagation considered).
+5. **Given** verification token expires after 24 hours, **When** user retries an
+   expired token, **Then** system generates a new token and re-verification required.
 
 ---
 
@@ -248,6 +266,42 @@ per-agent progress, and live log updates.
 2. **Given** long-running review, **When** user navigates within authenticated area,
    **Then** AI agent status remains visible via persistent status indicator.
 
+---
+
+### User Story 14 - Review Depth Behavior Differentiation (Priority: P1)
+
+As a developer, I want each review depth (quick/standard/detailed) to produce
+measurably different behavior in scope, time, and cost, so I can choose the right
+level for my use case.
+
+**Why this priority**: Currently depth is selectable but behavior is not
+differentiated. This makes the depth feature meaningful and provides user choice.
+
+**Independent Test**: Run the same input through all 3 depths per perspective
+(ASVS/SAST/DAST) and verify scope coverage, execution time, and finding counts scale
+appropriately.
+
+**Acceptance Scenarios**:
+
+1. **Given** ASVS perspective + Quick depth, **When** review runs on a 50-file
+   repository, **Then** at most 10 files analyzed with ASVS V1/V2/V5 coverage
+   completing in approximately 1 minute.
+2. **Given** ASVS perspective + Standard depth (default), **When** same input,
+   **Then** up to 30 files analyzed with ASVS V1-V7 coverage in approximately
+   3 minutes.
+3. **Given** ASVS perspective + Detailed depth, **When** same input, **Then**
+   up to 100 files analyzed with ASVS V1-V14 complete coverage in approximately
+   10 minutes.
+4. **Given** SAST perspective + Quick depth, **When** review runs, **Then**
+   Semgrep `p/security-audit` ruleset applied to maximum 10 files in ~30 seconds.
+5. **Given** SAST perspective + Detailed depth, **When** review runs, **Then**
+   full Semgrep ruleset applied with LLM-based false positive filtering to up
+   to 200 files.
+6. **Given** DAST perspective + Quick depth, **When** scan runs on verified URL,
+   **Then** passive scan only on top 5 URLs in ~2 minutes.
+7. **Given** DAST perspective + Detailed depth, **When** scan runs on verified URL,
+   **Then** full active scan on up to 200 URLs in ~1 hour with all attack vectors.
+
 ### Edge Cases
 
 - Invalid or private GitHub URL submitted as public repository input.
@@ -260,6 +314,9 @@ per-agent progress, and live log updates.
 - Export requested before report completion.
 - Theme preference unavailable in restricted browser storage.
 - Re-review initiated when original repository branch no longer exists.
+- Invalid perspective × input type combination (e.g., DAST with GitHub input).
+- Code paste with no detectable language and no filename hint provided.
+- DAST verification token expires during active scan execution.
 
 ## Security and Safety Constraints *(mandatory)*
 
@@ -305,10 +362,20 @@ per-agent progress, and live log updates.
 - **FR-015**: Baseline scan target duration MUST be 10 minutes or less.
 - **FR-016**: Full scan target duration MUST be 30 minutes or less.
 - **FR-017**: Technical safeguards MUST prevent scan execution for unverified domains.
+
+#### Review Configuration
+
 - **FR-018**: Review configuration MUST allow selecting one or more perspectives:
-  ASVS, SAST, DAST.
-- **FR-019**: Review configuration MUST allow selecting depth: quick, standard,
-  detailed.
+  ASVS, SAST, DAST. Valid combinations:
+  - ASVS and SAST work with `github` or `code` input types.
+  - DAST works only with `url` input type.
+  - Invalid combinations MUST be rejected with clear error messages.
+- **FR-019**: Review configuration MUST allow selecting depth: quick, standard
+  (default), detailed. Each (perspective × depth) combination has distinct scope,
+  ruleset, time, and cost characteristics defined in the Depth Matrix.
+
+#### Progress Visibility
+
 - **FR-020**: Running review view MUST display global progress percentage.
 - **FR-021**: Running review view MUST display per-agent state
   (running/completed/waiting).
@@ -316,6 +383,9 @@ per-agent progress, and live log updates.
   stream.
 - **FR-023**: Review execution MUST continue when users move away from the progress
   screen.
+
+#### Report and Findings
+
 - **FR-024**: Completed report MUST include total score and severity breakdown.
 - **FR-025**: Completed report MUST include perspective-level evaluation summary.
 - **FR-026**: Each finding MUST include severity, location, ASVS mapping, and CWE ID.
@@ -325,6 +395,9 @@ per-agent progress, and live log updates.
 - **FR-030**: Finding detail MUST include reference links.
 - **FR-031**: Findings MUST support resolved/unresolved toggle in-session.
 - **FR-032**: Summary and detail screens MUST reflect updated in-session state.
+
+#### History and Re-Review
+
 - **FR-033**: History screen MUST support repository name search.
 - **FR-034**: History screen MUST support period filter
   (all/today/7 days/30 days/90 days).
@@ -337,6 +410,9 @@ per-agent progress, and live log updates.
   keep them non-editable.
 - **FR-039**: Re-review action MUST allow changing selected perspectives and depth.
 - **FR-040**: Re-review modal MUST show dynamic estimated execution time.
+
+#### Export and UI
+
 - **FR-041**: Export MUST support Markdown, PDF, and JSON outputs.
 - **FR-042**: Export MUST support section-level inclusion choices
   (summary, perspective ratings, all findings, remediation code, prompt history).
@@ -346,6 +422,46 @@ per-agent progress, and live log updates.
   mobile.
 - **FR-046**: Persistent AI status indicator MUST be visible in authenticated
   navigation context.
+
+#### Depth Behavior Differentiation
+
+- **FR-047**: Each depth level MUST produce measurably different behavior:
+  - `quick`: Minimal scope (≤10 files/URLs), focused rules, ~1min, ~10円
+  - `standard`: Balanced scope (≤30 files/URLs), standard rules, ~3min, ~30円
+  - `detailed`: Comprehensive scope (≤200 files/URLs), full rules + LLM
+    enhancement, ~10min+, ~80-500円
+- **FR-048**: ASVS depths MUST scale ASVS category coverage:
+  - quick: V1, V2, V5 (Top 3 critical categories)
+  - standard: V1-V7 (Common requirements)
+  - detailed: V1-V14 (Complete ASVS Level 1+2)
+- **FR-049**: SAST depths MUST scale Semgrep rule sets:
+  - quick: `p/security-audit`
+  - standard: `p/owasp-top-ten` + `p/security-audit`
+  - detailed: Full `auto` ruleset + LLM-based false positive filtering
+- **FR-050**: DAST depths MUST scale scan intensity:
+  - quick: Passive scan only (5 URLs)
+  - standard: Light active baseline (30 URLs)
+  - detailed: Full active scan with all attack vectors (200+ URLs)
+
+#### Language Detection
+
+- **FR-051**: Code language detection MUST use priority order:
+  1. Explicit user selection (if not "auto")
+  2. Filename extension
+  3. Shebang line analysis
+  4. Code pattern heuristics
+- **FR-052**: System MUST support 15+ programming languages with security relevance
+  tiers (1=highest priority, analyzed first). Priority 1 languages: JavaScript,
+  TypeScript, Python.
+
+#### URL Ownership Verification
+
+- **FR-053**: Verification tokens MUST be:
+  - Cryptographically random (32+ characters)
+  - Unique per request
+  - Format: `aisec-verify-<random>`
+- **FR-054**: Verification tokens MUST expire after 24 hours.
+- **FR-055**: Failed verification attempts MUST be rate-limited (max 10/hour per IP).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -365,6 +481,8 @@ per-agent progress, and live log updates.
 - **ExportRequest**: Requested format and selected content sections for report output.
 - **OwnershipVerificationRecord**: URL ownership proof method, challenge token,
   validation outcome, and expiry.
+- **DepthConfiguration**: Per (perspective × depth) settings including max files/URLs,
+  rule set, prompt template, time estimate, and cost estimate.
 
 ## Success Criteria *(mandatory)*
 
@@ -384,8 +502,11 @@ per-agent progress, and live log updates.
   longer than 5 seconds under normal conditions.
 - **SC-008**: Up to 10 concurrent active users can run reviews without functional
   degradation.
-- **SC-009**: Average review cost target remains within 50 JPY per review.
+- **SC-009**: Average review cost target remains within 50 JPY per review for
+  standard depth.
 - **SC-010**: During hackathon review period, service availability remains at 100%.
+- **SC-011**: All 9 (perspective × depth) combinations produce measurably different
+  scope and execution time within ±20% of estimated values.
 
 ## Assumptions
 
@@ -396,6 +517,45 @@ per-agent progress, and live log updates.
   across new sessions.
 - Demo datasets and examples do not include real credentials or customer data.
 - Review depth estimates are guidance values and can vary by target size.
+- OWASP ZAP container or equivalent DAST engine is provisioned in Azure.
+- Semgrep service (Azure Function or container) is available for SAST analysis.
+
+## Depth × Perspective Matrix
+
+### ASVS (LLM-based via Azure OpenAI GPT-4o)
+
+| Depth    | Max Files | ASVS Categories     | Time   | Cost (JPY) |
+|----------|-----------|---------------------|--------|------------|
+| quick    | 10        | V1, V2, V5          | ~1min  | ~10        |
+| standard | 30        | V1–V7               | ~3min  | ~30        |
+| detailed | 100       | V1–V14 (complete)   | ~10min | ~150       |
+
+### SAST (Semgrep-based)
+
+| Depth    | Max Files | Rule Sets                          | LLM Filter | Time   | Cost |
+|----------|-----------|-----------------------------------|-----------|--------|------|
+| quick    | 10        | p/security-audit                  | No        | ~30s   | ~3   |
+| standard | 30        | p/owasp-top-ten + p/security-audit| No        | ~2min  | ~10  |
+| detailed | 200       | auto (all rules)                  | Yes       | ~10min | ~80  |
+
+### DAST (OWASP ZAP-based)
+
+| Depth    | Max URLs | Scan Mode                       | Time    | Cost |
+|----------|----------|--------------------------------|---------|------|
+| quick    | 5        | Passive only                    | ~2min   | ~15  |
+| standard | 30       | Baseline (passive + light active)| ~15min  | ~100 |
+| detailed | 200      | Full active scan                | ~1hour  | ~500 |
+
+### Combination Validity Matrix
+
+| Input Type | ASVS | SAST | DAST |
+|-----------|------|------|------|
+| GitHub    | ✅   | ✅   | ❌   |
+| Code      | ✅   | ✅   | ❌   |
+| URL       | ❌   | ❌   | ✅   |
+
+**Note**: DAST requires running web application. GitHub/Code inputs analyze
+static artifacts only.
 
 ## Screen-by-Screen Functional Requirements
 
@@ -410,9 +570,12 @@ per-agent progress, and live log updates.
 - Displays four KPI cards and recent review list.
 
 3. New Review Screen
-- Supports dynamic form switching by target type.
+- Supports dynamic form switching by target type (GitHub/Code/URL).
 - Enforces target-specific required inputs.
-- Supports perspective multi-select and depth selection.
+- Supports perspective multi-select with validity check against input type.
+- Supports depth selection (quick/standard/detailed) with time/cost estimates.
+- For Code input: language auto-detect or explicit selection.
+- For URL input: ownership verification wizard with method selection.
 
 4. Progress Screen
 - Displays global progress and elapsed/remaining estimate.
@@ -440,15 +603,17 @@ per-agent progress, and live log updates.
 
 ### Performance
 
-- Cost target per review: 50 JPY or less.
+- Cost target per review: 50 JPY or less (standard depth).
 - Concurrency target: approximately 10 active users.
 - Review progress stream must remain near real time during execution.
+- Each depth's actual execution time must be within ±20% of estimated value.
 
 ### UX
 
 - Desktop-first responsive behavior with tablet/mobile adaptation.
 - Full dark/light theme support across all screens.
 - Micro-interactions for buttons, toasts, transitions, and live status indicators.
+- Each depth selection MUST show estimated time and cost to user.
 
 ### Security
 
@@ -456,6 +621,7 @@ per-agent progress, and live log updates.
 - Dynamic scan ownership verification required before any active scan operation.
 - Prompt-injection and malicious input safeguards required for all AI-bound payloads.
 - Secrets must be managed via approved secure secret store workflow.
+- DAST verification tokens cryptographically secure and expire within 24 hours.
 
 ### Availability
 
@@ -472,6 +638,7 @@ per-agent progress, and live log updates.
 - ReviewSession (1) to PerspectiveScore (many)
 - ReviewSession (0..1) to OwnershipVerificationRecord (for URL scans only)
 - ReviewSession (many) to ExportRequest (many)
+- ReviewSession (1) references DepthConfiguration (1) per perspective
 
 ## API Design Overview
 
@@ -508,6 +675,8 @@ flowchart TD
   H --> R
   H --> RR
   RR --> P
+  N -->|URL input| OV[Ownership Verification]
+  OV --> P
   D -->|Logout| L
 ```
 
@@ -522,19 +691,57 @@ flowchart TD
 - Exported output must exclude restricted data unless user explicitly selects allowed
   debug subset.
 - Prompt and tool inputs must be sanitized against injection and command abuse patterns.
+- DAST ownership verification tokens must be cryptographically random and expire.
+- Active DAST scans must include rate limiting to prevent DoS on target.
 
 ## AI and Agent Requirements (Detailed)
 
-- SpecComplianceAgent evaluates ASVS coverage and produces requirement-linked evidence.
-- SastAnalysisAgent ingests static findings, prioritizes severity, and flags likely
-  false positives.
-- ReportSynthesizerAgent merges agent outputs into unified, actionable reports.
-- Agent orchestration must support state transitions: waiting, running, completed,
-  failed.
-- Each finding record must include: source agent, confidence signal, ASVS mapping,
-  CWE mapping, and recommended remediation.
-- Final report generation must cross-check LLM narrative against tool evidence before
-  publication.
+### SpecComplianceAgent (ASVS)
+- **Role**: ASVS coverage evaluation with requirement-linked evidence.
+- **Method**: LLM-based code analysis via Azure OpenAI GPT-4o.
+- **Input**: Source code files (prioritized by language detector).
+- **Output**: Findings with ASVS V1-V14 mapping, CWE IDs, severity.
+- **Depth Variants**:
+  - quick: V1/V2/V5 only, concise prompt, ~10 files
+  - standard: V1-V7, detailed prompt with evidence requirements, ~30 files
+  - detailed: V1-V14, expert prompt with attack scenarios, ~100 files
+
+### SastAnalysisAgent (SAST)
+- **Role**: Static analysis with rule-based detection and AI interpretation.
+- **Method**: Semgrep execution + LLM-based interpretation and FP filtering.
+- **Input**: Source code files (priority-sorted by language detector).
+- **Output**: Findings with rule IDs, CWE mapping, false-positive indicators.
+- **Depth Variants**:
+  - quick: `p/security-audit` rules only, no LLM filter
+  - standard: `p/owasp-top-ten` + `p/security-audit`, no LLM filter
+  - detailed: Full `auto` ruleset + LLM-based FP filtering
+
+### DastAnalysisAgent (DAST)
+- **Role**: Dynamic web application security testing.
+- **Method**: OWASP ZAP orchestration via REST API + result analysis.
+- **Input**: Verified target URL with ownership token.
+- **Output**: Findings from spider, passive scan, and active scan results.
+- **Depth Variants**:
+  - quick: Passive scan only on top 5 URLs (safe, no attacks)
+  - standard: Baseline scan (spider + light active) on 30 URLs
+  - detailed: Full active scan with all attack vectors on 200+ URLs
+
+### ReportSynthesizerAgent
+- **Role**: Merge multi-agent outputs into unified, deduplicated report.
+- **Method**: LLM-based deduplication, prioritization, and narrative generation.
+- **Input**: Findings from all enabled perspective agents.
+- **Output**: Consolidated report with cross-references and unified scoring.
+
+### Agent Orchestration
+
+- Agent states: waiting, running, completed, failed.
+- Parallel execution when multiple perspectives selected (where dependencies allow).
+- Per-agent progress reporting via Server-Sent Events (SSE).
+- Failure isolation: one agent failure does not block others.
+- Final report generation MUST cross-check LLM narrative against tool evidence
+  before publication.
+- Each (perspective × depth) configuration MUST be loaded from centralized
+  `DepthConfiguration` registry.
 
 ## Scope Boundaries (Out of Scope)
 
@@ -544,3 +751,6 @@ flowchart TD
 - Native mobile applications.
 - Real-time collaborative editing across multiple users on one review session.
 - Automatic code patch commit back to repository.
+- Custom Semgrep rule creation by end users.
+- DAST scanning of non-HTTP/HTTPS protocols.
+- Continuous monitoring or scheduled recurring scans.
