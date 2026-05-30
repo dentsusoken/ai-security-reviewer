@@ -23,7 +23,7 @@ import type { ReviewDetail, FindingSummary } from '../types/api';
 export function ResultPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const reviewId = id || 'rs_demo_001';
+  const reviewId = id || 'demo-001';
 
   const [review, setReview] = useState<ReviewDetail | null>(null);
   const [findings, setFindings] = useState<FindingItem[]>([]);

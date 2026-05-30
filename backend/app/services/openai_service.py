@@ -318,6 +318,41 @@ class OpenAIService:
 
         return "".join(parts)
 
+    async def chat_json(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+    ) -> Any:
+        """Send a chat completion request expecting a JSON response.
+
+        Args:
+            system_prompt: System message.
+            user_prompt: User message.
+
+        Returns:
+            Parsed JSON (dict or list).
+        """
+        if self.mock_mode:
+            return []
+
+        response = self.client.chat.completions.create(
+            model=self.deployment_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            max_tokens=4000,
+            response_format={"type": "json_object"},
+        )
+
+        content = response.choices[0].message.content
+        parsed = json.loads(content)
+        # If the model wraps in {"results": [...]}, unwrap
+        if isinstance(parsed, dict) and len(parsed) == 1:
+            return next(iter(parsed.values()))
+        return parsed
+
     async def _mock_analyze(
         self,
         code_files: list[dict[str, str]],

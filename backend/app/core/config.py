@@ -79,6 +79,10 @@ class Settings(BaseModel):
         "APPLICATIONINSIGHTS_CONNECTION_STRING", ""
     )
 
+    # Semgrep Azure Function settings
+    semgrep_function_url: str = os.getenv("SEMGREP_FUNCTION_URL", "")
+    semgrep_function_key: str = os.getenv("SEMGREP_FUNCTION_KEY", "")
+
     @property
     def cosmos_enabled(self) -> bool:
         """Check if Cosmos DB is configured."""

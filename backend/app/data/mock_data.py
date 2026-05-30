@@ -6,9 +6,9 @@ Data values match the mockup HTML for consistency.
 from datetime import UTC, datetime, timedelta
 
 # Demo review session IDs
-DEMO_REVIEW_ID = "rs_demo_001"
-DEMO_REVIEW_ID_2 = "rs_demo_002"
-DEMO_REVIEW_ID_3 = "rs_demo_003"
+DEMO_REVIEW_ID = "demo-001"
+DEMO_REVIEW_ID_2 = "demo-002"
+DEMO_REVIEW_ID_3 = "demo-003"
 
 # Demo timestamps
 NOW = datetime.now(UTC)

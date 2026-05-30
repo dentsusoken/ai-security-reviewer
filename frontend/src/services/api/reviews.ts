@@ -31,4 +31,11 @@ export const reviewsApi = {
   getFindings(reviewSessionId: string): Promise<FindingsResponse> {
     return apiClient.get<FindingsResponse>(`/api/reviews/${reviewSessionId}/findings`);
   },
+
+  /**
+   * Re-run an existing review
+   */
+  rerun(reviewSessionId: string): Promise<ReviewCreateResponse> {
+    return apiClient.post<ReviewCreateResponse>(`/api/reviews/${reviewSessionId}/rerun`, {});
+  },
 };

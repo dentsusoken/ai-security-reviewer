@@ -91,6 +91,28 @@ module openAi 'modules/openai.bicep' = if (enableOpenAi) {
   }
 }
 
+// Azure AI Search for ASVS RAG (deployed with OpenAI)
+module aiSearch 'modules/aisearch.bicep' = if (enableOpenAi) {
+  name: 'aisearch-deployment'
+  params: {
+    name: 'srch-${resourcePrefix}'
+    location: location
+    tags: tags
+  }
+}
+
+// Azure AI Foundry Agent linkage (deployed with OpenAI)
+module aiFoundryAgent 'modules/aifoundry-agent.bicep' = if (enableOpenAi) {
+  name: 'aifoundry-agent-deployment'
+  params: {
+    name: 'agent-${resourcePrefix}'
+    location: location
+    tags: tags
+    openAiAccountName: openAi.outputs.name
+    searchServiceName: aiSearch.outputs.name
+  }
+}
+
 // Application Insights for monitoring
 module appInsights 'modules/appinsights.bicep' = {
   name: 'appinsights-deployment'

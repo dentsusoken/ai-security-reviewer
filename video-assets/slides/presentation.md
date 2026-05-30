@@ -1,200 +1,172 @@
----
-marp: true
-theme: default
-size: 16:9
-style: |
-  /* 全体の基本設定：NotionやLinearのようなモダンなフォント指定 */
-  section {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', sans-serif;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    letter-spacing: 0.05em;
-  }
 
-  /* 実際のUI画面に寄せた淡いグロー（光）を持つ白背景 */
-  .bg-light-glow {
-    background-color: #ffffff;
-    background-image:
-      radial-gradient(circle at top left, rgba(102, 126, 234, 0.15), transparent 40%),
-      radial-gradient(circle at bottom right, rgba(118, 75, 162, 0.15), transparent 40%);
-    color: #1a1a1a;
-  }
 
-  /* 深みのあるダーク背景 */
-  .bg-dark {
-    background-color: #0a0a0a;
-    color: #ffffff;
-  }
+# タイトル案：【SDD×speckit×Azure】AI駆動開発のギャンブル化を防げ！新人がAIの弱点をAIで補うアプリを作った全記録
 
-  /* 警戒感と不穏さを出すダークパープル */
-  .bg-dark-purple {
-    background-color: #1a1a2e;
-    background-image: radial-gradient(circle at center, rgba(118, 75, 162, 0.2), transparent 60%);
-    color: #ffffff;
-  }
+## 1. はじめに：便利だけど怖い「AI開発の裏側」に挑む
+近年、AIがコードを書いてくれる「AI駆動開発」が大きなトレンドになっています。
+AIのおかげで、エンジニアでなくても爆速でモノ作りができる、夢のような時代がやってきました。
 
-  /* グラデーションテキスト（AI感の象徴） */
-  .text-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+しかし、実際にやってみると「AIのその時々の解釈によって、出てくるコードの品質が変わる」という現実に直面します。
+ある時は完璧なのに、ある時はセキュリティ対策がすっぽり抜けている……。これでは、せっかくの便利な開発もまるで「ギャンブル」のようになってしまいます。
 
-  .text-alert { color: #ff6b6b; font-weight: 600; }
-  .text-gray { color: #888888; }
+「このギャンブル化をどうにか防いで、みんなが安心・安全に開発を楽しめる仕組みを作れないか？」
 
-  /* タイポグラフィのメリハリ */
-  .title-main { font-size: 3.5em; font-weight: 700; letter-spacing: -0.02em; }
-  .subtitle { font-size: 1.2em; font-weight: 300; letter-spacing: 0.1em; color: #888; }
-  .text-huge { font-size: 5.5em; font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; }
-  .text-large-num { font-size: 4.5em; font-weight: 700; letter-spacing: -0.05em; line-height: 1;}
+そう考えて、今回のハッカソンで「セキュリティレビュー自動化アプリ」の開発に挑戦しました。
+驚くべきことに、これを作った私は、アプリ開発がまだ「3回目」の新人です。
 
-  /* UI風のカードコンポーネント */
-  .card-container { display: flex; gap: 30px; justify-content: center; align-items: center; margin: 40px 0; }
-  .card {
-    padding: 20px 40px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.04);
-    font-size: 1.4em;
-    font-weight: 500;
-    color: #333;
-    backdrop-filter: blur(10px);
-  }
+1回目：研修で、VSCodeのチャット機能を手探りで使ってみた。
+2回目：仕様書（specファイル）から機能を実装できるか試してみた。
+3回目（今回）：これまでの反省を生かして、本気でAIと並走してみた。
 
-  /* ダークモード用のリスト */
-  ul.minimal-list {
-    text-align: left;
-    display: inline-block;
-    font-size: 1.8em;
-    list-style-type: none;
-    padding: 0;
-    font-weight: 300;
-    line-height: 1.6;
-  }
-  ul.minimal-list li { margin-bottom: 20px; color: #eaeaea; }
-  ul.minimal-list li::before {
-    content: "—";
-    color: #ff6b6b;
-    display: inline-block;
-    width: 1.5em;
-    margin-left: -1.5em;
-  }
-
-  .arrow { font-size: 1.5em; color: #667eea; opacity: 0.7; }
----
-
-<!-- _class: bg-dark -->
-<div class="title-main text-gradient">AI Security Reviewer</div>
-<br>
-<div class="subtitle">── for the Spec-Driven era ──</div>
-<br><br><br><br><br>
-<div style="font-size: 0.7em; color: #555; letter-spacing: 0.05em;">Microsoft AI Agent Hackathon 2026</div>
+知識も経験も浅い私が、なぜ日常業務をこなしながら、わずか数日間でこのアプリを形にできたのか？
+このブログでは、AzureとAIを味方につけて課題をクリアした「リアルな開発手法とそこでの感動」を丸ごと共有します。AI開発で同じような悩みを抱えている方や、これからアプリ開発に挑戦してみたい方の参考になれば嬉しいです。
 
 ---
 
-<!-- _class: bg-light-glow -->
-<div style="text-align: left; width: 100%; padding-left: 80px; margin-bottom: 20px;">
-  <span style="font-size: 1.4em; font-weight: 400; color: #666;">SDDをご存じですか？</span>
-</div>
+## 2. 背景と課題：AI駆動開発（SDD）に潜む「セキュリティのブレ」
 
-<div class="text-huge text-gradient">SDD</div>
-<br>
-<div style="font-size: 1.6em; font-weight: 300; color: #555;">Specification-Driven Development</div>
-<div style="font-size: 1.1em; color: #888; margin-top: 10px;">仕様駆動開発</div>
+私が今回採用したのは、仕様書を読ませてAIにコーディングしてもらう「SDD（仕様駆動開発）」という手法です。
+自然言語（日本語）で指示が出せて、開発スピードが劇的に上がるため、初めて 1人でアプリを作る私でも1週間足らずで形にすることができました。
 
----
+### ⚠️ ですが、実際にやってみると「落とし穴」もありました。
 
-<!-- _class: bg-light-glow -->
-<div class="card-container" style="margin-top: 0;">
-  <div class="card">仕様書</div>
-  <div class="arrow">➔</div>
-  <div class="card">AI</div>
-  <div class="arrow">➔</div>
-  <div class="card">コード</div>
-</div>
-
-<div style="display: flex; justify-content: center; gap: 100px; margin-top: 40px; margin-bottom: 20px;">
-  <div style="text-align: left;">
-    <div style="font-size: 1em; color: #888; margin-bottom: 10px;">タスク数</div>
-    <div class="text-gradient text-large-num">78</div>
-  </div>
-  <div style="text-align: left;">
-    <div style="font-size: 1em; color: #888; margin-bottom: 10px;">開発期間</div>
-    <div class="text-gradient text-large-num" style="display: flex; align-items: baseline; gap: 10px;">1<span style="font-size: 0.4em; font-weight: 400;">週間</span></div>
-  </div>
-</div>
-
-<div style="font-size: 1.6em; font-weight: 600; color: #333;">本来3ヶ月の規模を、たった1週間で。</div>
-<div style="font-size: 1em; color: #888; margin-top: 15px;">初めての個人開発でも完走</div>
+SDDは日本語の仕様書を根拠にコードを実装するため、AIのその時々の解釈によって、出力されるコードが変わってしまいます。
+そうなると、ある画面ではしっかりセキュリティ対策がされているのに、別の画面ではすっぽり抜け落ちている……なんてことが起こり、開発がまるで「ギャンブル」のようになってしまうのです。またAIが生成したコードを全てレビューするのもなかなか大変で、中身がブラックボックス化しがちになってしまう点も不安な要素でした。
 
 ---
 
-<!-- _class: bg-dark-purple -->
-<div style="text-align: left; width: 80%;">
-  <div style="font-size: 3em; margin-bottom: 50px; font-weight: 300; letter-spacing: -0.02em;">But, there's a <span class="text-alert">trap</span>.</div>
+## 3. 解決策：AIが書いたコードは、AIにレビューさせればいい！
 
-  <ul class="minimal-list">
-    <li>仕様書とコードの乖離</li>
-    <li>コードのブラックボックス化</li>
-  </ul>
+コードが生成される度に人間がレビューをするのは大変ですし、かといってAIの解釈がブレないように仕様書をガチガチに作り込むのもハードルが高い。
+それなら、**「SDDで生成されたコードを、自動でセキュリティレビューしてくれるアプリ」自体を、AIと一緒に作ってしまおう！** と思い至りました。
 
-  <br><br>
-  <div style="font-size: 1.4em; color: #999; margin-top: 40px;">
-    特に懸念したのは… <span class="text-alert" style="font-weight: 600; font-size: 1.2em;">セキュリティ</span>
-  </div>
-</div>
+さらに、「自然言語で誰でもアプリが作れる時代になったからこそ、セキュリティの専門知識がない人でも、安心・安全に開発する楽しさを体感して欲しい」という思いが、今回の開発の原動力になりました。
 
 ---
 
-<!-- _class: bg-dark-purple -->
-<div style="display: flex; justify-content: space-around; width: 80%; margin-bottom: 40px;">
-  <div style="text-align: center;">
-    <div style="font-size: 1.2em; color: #aaa; margin-bottom: 15px;">プロンプトの質</div>
-    <div style="font-size: 2.5em; opacity: 0.8;">🎲</div>
-  </div>
-  <div style="text-align: center;">
-    <div style="font-size: 1.2em; color: #aaa; margin-bottom: 15px;">AIモデル</div>
-    <div style="font-size: 2.5em; opacity: 0.8;">🤖</div>
-  </div>
-  <div style="text-align: center;">
-    <div style="font-size: 1.2em; color: #aaa; margin-bottom: 15px;">仕様書の深さ</div>
-    <div style="font-size: 2.5em; opacity: 0.8;">📄</div>
-  </div>
-</div>
+## 4. アーキテクチャ：Azure未経験の私を支えた「3つの柱」
 
-<div class="arrow" style="transform: rotate(90deg); margin: 20px 0;">➔</div>
+今回のアプリの全体像はこのような形になっています。
 
-<div style="font-size: 3.5em; font-weight: 700; margin-top: 20px; letter-spacing: -0.02em;">
-  セキュリティが、<br><span class="text-alert">ギャンブル化</span>
-</div>
+> 📌 **[ ここにアーキテクチャ図を埋め込み ]**
 
----
+もともとは今回のハッカソンの応募要件だったから採用したAzureでしたが、実際に実装を進めてみると、今回の開発にはなくてはならない「ベストな選択」だったと感じています。そう思わせてくれた重要ポイントが3つあります。
 
-<!-- _class: bg-dark -->
-<div style="font-size: 1.8em; font-weight: 300; color: #888; margin-bottom: 40px;">So, I built one.</div>
+### ① 1人開発が初めてでも、デプロイまで迷わず進めた充実のサービス
 
-<div style="font-size: 3em; margin-bottom: 20px; opacity: 0.9;">🛡️</div>
-<div class="title-main text-gradient" style="font-size: 3em;">AI Security Reviewer</div>
+これまではチーム開発の経験しかなく、1人でインフラ環境まで用意してアプリ開発に挑むのは今回が初めてでした。最初は不安でしたが、Azureは各種サービスがとても充実しています。AIと一緒に構成案を練り、インフラ環境を整えてデプロイするまでの流れを、初心者の私でもスムーズに進めることができました。
 
-<br><br>
-<div style="font-size: 1.5em; font-weight: 300; color: #ccc; letter-spacing: 0.05em;">
-  SDDで作ったアプリを、SDDで作ったアプリで守る
-</div>
+### ② レビューの中核を担う「Azure OpenAI Service（GPT-4o）」
+
+今回のアプリでは、セキュリティレビューの中核（LLM）に**GPT-4o**を採用しており、その呼び出し基盤としてAzure OpenAI Serviceを利用しています。ソースコードという大事なデータを扱うアプリなので、**入力したデータがAIの学習に使われない**というAzureの安心感は外せないポイントでした。この信頼性があったからこそ、セキュリティレビューというテーマにも思い切って挑戦できました。
+
+### ③ 開発のコンパスになってくれた「speckit」
+
+開発全体のフレームワークには、GitHubが公式で公開しているオープンソースの仕様駆動開発ツール**「Spec Kit（speckit）」**を採用しました。
+speckitは、AIと一緒に「質問（clarify）→仕様（specify）→計画（plan）→タスク（tasks）→実装（implement）」というステップを段階的に踏んでいくためのワークフローツールです。主にアプリの仕様を定義するspec.mdや、実装手順を管理するtask.mdといったファイルを出力して開発を進めます。これが、この後の大ピンチを救ってくれることになります。
 
 ---
 
-<!-- _class: bg-dark -->
-<div class="title-main text-gradient" style="font-size: 3em; margin-bottom: 30px;">AI Security Reviewer</div>
+## 5. 実装の工夫：モック先行の手順と、ピンチを救った仕様ファイル
 
-<div style="font-size: 2em; font-weight: 300; color: #fff; margin-bottom: 80px;">
-  安心な SDD 開発を。
-</div>
+今回のメインのコーディングには、VSCodeの「GitHub Copilot（有償版）」を使用しました。限られたトークンの中で最大のパフォーマンスを出すため、開発の進め方を工夫しました。
 
-<div style="font-size: 1em; font-weight: 300; color: #666; letter-spacing: 0.05em; font-family: monospace;">
-  github.com/dentsusoken/ai-security-reviewer
-</div>
+### 🎨 【開発手順の気づき】仕様は文字ではなく「画面モック（HTML）」で伝える
+
+前回の開発では、ドキュメントや文字ベースでAIに仕様を伝えようとして上手くいかない部分がありました。
+AIはもちろん、人間同士（ハッカソンの審査員やチームのメンバー）であっても、文字だけの仕様書をレビューして完成形をイメージするのは大変で、認識がずれてしまうことは多々あります。
+
+そこで今回は、まず最初にAIと壁打ちして画面モック（HTML）を完全に作り込み、それをdocsフォルダに配置してから仕様ファイル（spec.mdなど）を作成していきました。
+ブラウザでポチポチ触りながら実際の挙動を確認できるこのアプローチには、3つの大きなメリットがありました。
+
+① AIとも人間とも、一瞬で「共通認識」が取れる
+文字で長々と説明するよりも、HTMLを直接AIに見せる方が、画面構造を正確に理解してくれるためプロンプトのブレが激減します。また、人間が見ても直感的に挙動がイメージできるため、確認作業がとにかく楽になりました。
+
+② 仕様変更の「手戻り」がゼロになり、コードも流用できる
+裏側の仕組みを作ってから「やっぱり直したい」となると大変ですが、HTMLのガワだけなら修正は一瞬です。デザインを最初に確定させておくことで手戻りを防ぎ、本実装のときにはそのHTMLをそのまま流用して爆速で開発できました。
+
+③ 「完成形」が先に見えるので、1人開発でもモチベーションが続く
+最初に「動く見た目」が目の前にあることで、「よし、今からここを動かすぞ！」とゴールが視重視明確になり、初めての1人開発でも最後までワクワクしながら走り切ることができました。
+
+### 💡 KnowNarratorでの「事前壁打ち」がもたらした3つの効果
+
+今回の開発では、VS CodeのGitHub Copilotと、KnowNarratorを使い分けました。
+
+GitHub Copilotには、事前に作成した画面モック（HTML）や仕様書を読み込ませ、バックエンドを含めたソースコードの実装をすべて担当してもらいました。
+一方KnowNarratorでは、社内トークンを気にせずClaude 4.7などの高性能モデルを使える環境を活かし、構想段階からひたすら壁打ちを続けました。
+この壁打ちは、初期から同じチャットで続け、構想から設計、実装まで並走してもらいました。
+
+こうした運用方法によりメリットは、大きく3つありました。
+
+① GitHub Copilotのトークンを賢く節約できた
+Copilot側でダラダラと試行錯誤してしまうとトークンを無駄に消費してしまいます。今回は「どう指示を出せば、Copilotが一発で綺麗なコードを書いてくれるか」を事前にこのチャットで徹底的にテストしました。ここで磨き上げたプロンプトだけを本番のGitHub Copilotに投入したため、無駄なやり取りがなくなり、トークン消費を最小限に抑えられました。
+
+② AIが背景を汲んでくれるため、回答の質が上がった
+最初から最後まで1つのチャットでやり取りをしたことで、AIがアプリの目的やこれまでの流れをしっかり理解してくれました。質問したときも、こちらの意図を細かく汲んで回答してくれるため「的外れな出力」がほとんどなくなり、返ってくるアイデアやプロンプトの質が目に見えて高くなりました。
+
+③ 残タスクの管理や、次の作業手順をいつでも相談できた
+AIが開発の前提をすべて記憶してくれているため、「今どこまで進んでいて、残りのタスクは何か」の管理や、「具体的に次は何の手順から手をつければいいか」の相談まで一緒に考えることができました。初めての1人開発において、これほど心強いバディはいませんでした。
+
+### 💥 最大の危機：チャットの強制終了と、一瞬での引き継ぎ劇
+
+しかし、1つのチャットで熱心に壁打ちを続けて酷使した結果、入力トークンの上限に達してしまい、突然使えなくなってしまいました。
+
+頼りにしていたため焦りましたが、ここで役に立ったのがspeckitの仕組みでした。
+新しいチャット画面を立ち上げて、まずはAIにこう尋ねてみました。
+
+私：「speckitでアプリ開発をしています。前のチャットから現状を引き継ぐために必要な情報はありますか？」
+AI：「それなら、spec.md（仕様書）とtask.md（タスク管理ファイル）を見せてください」
+
+手元にあったそれらのファイルを共有するだけで、トークンを消費することなく、アプリの概要や現状を引き継ぐことができました。
+
+一見すると「AIが優秀だからできたラッキー」に見えますが、振り返ってみると、助かった要因は2つあったと思っています。
+
+① 1つのチャットで壁打ちして、やり取りをファイルに反映させていたから
+もし、毎回チャットを新しくしていたり、ただ会話しているだけだったら、手元には何も残りませんでした。
+1つのチャットでじっくり壁打ちを続け、その内容を反映した精密なmdファイルを事前に作成して手元に残していたからこそ、すぐに引き継ぎ資料として使えました。
+
+② 「speckit」というフレームワークを採用していたから
+これがもし自分独自のメモだったら、新しいAIは状況を理解するのに時間がかかったはずです。
+speckitというフレームワークに則っていたからこそ、実際のコードをまだ1行も見ていない新しいAIであっても、「どのファイルを見れば状況を把握できそうか」をすぐに理解してくれたのだと思います。
+
+---
+
+## 6. インパクト：ハッカソンで伝えたい「3つの成果」
+
+今回のチャレンジを通じて、ハッカソンで求められる3つの評価基準に対して、自分なりに以下のような答えを出せたと考えています。
+
+### 📈 ① ビジネスインパクト：個人だけでなく「組織の生産性」を向上させる価値
+
+* **未経験でも数日で開発できる再現性**：
+1人でのアプリ開発が初めての新人でも、日常業務をこなしながら、わずか数日間でAI搭載のWebアプリを作れるという「手法（SDD ＋ speckit ＋ Azure）」の実績を作れました。
+* **シニアエンジニアのレビューコスト削減**：
+新人が先輩の手を煩わせずに、自走して初期段階のセキュアなコードを書けるようになるため、社内のシニアエンジニアがレビューに割く時間（コスト）を大幅に削減できます。組織全体の開発スピードを底上げするポテンシャルを持ったアプリだと思っています。
+
+### 🎯 ② アプローチの有効性：AIの「ブレ」を、セキュアなAIで「教育的」に解決する
+
+* **脆弱性を防ぐファーストフィルターとしての有効性**：
+このアプリは人間のセキュリティ専門家を完全に置き換えるものではありません。しかし、開発の初期段階で、OWASP Top 10などの公的基準に則った「明らかな脆弱性やアンチパターン」を検知するセーフティネットとして非常に論理的で有効です。
+* **「なぜ危険か」が分かる教育的効果**：
+厳格すぎてエラーの意味が分かりにくい既存の静的解析ツールとは違い、AI（GPT-4o）が自然言語でフレンドリーにアドバイスをくれます。そのため、開発者が理由を納得しながら開発を進められるという教育的な強みもあります。
+* **Azure OpenAI Serviceの必然性**：
+機密性の高いソースコードを扱うため、入力データがAIの学習に使われないAzureの安全な環境をレビューの中核に置いたことも、このアプローチが成立した大きな理由です。
+
+### 🛠️ ③ 完成度・実現性：「作して終わり」にしない、引き継ぎや拡張性まで考えた設計
+
+* **「属チャット化」を防ぎ、次の開発へ繋げる引き継ぎ性**：
+アプリ開発は一度作って終わりではなく、他のメンバーへの引き継ぎや、将来のバージョンアップが必ず発生します。AI開発における最大の罠は、開発の経緯が「特定のチャット画面（AIの記憶）」に閉じ込められてしまうことです。
+今回、トークン上限でチャットが強制終了した際、最初に作成した`task.md`（全体像をまとめたファイル）を渡すだけで一瞬で新しいAIに現状を引き継げました。この経験は、人間相手の引き継ぎや、将来の機能追加の際にもそのまま生かせる強力な仕組みだと確信しています。
+* **実際の業務運用に耐える堅牢さ**：
+開発のプロセスをチャットだけに依存させず、最初の段階で仕様ファイル（speckit）に集約させておくやり方は、アプリの「寿命」を伸ばし、実際の業務で長期的に運用・アップデートしていく上でも非常にタフで、再現性が高い手法だと実感しました。
+
+---
+
+## 7. おわりに：AIはただの道具じゃない、頼れる相棒だ
+
+「AIは、ただ命令を聞いてコードを書くだけのツールではなく、こちらの構想を一緒に膨らませてくれる最高のパートナーだと感じました。
+手段としてではなく、同じ目的を持つパートナーとして育てる使い方も学ぶことが出来ました。
+
+専門知識の少なかった私が、1人でのアプリ開発を日常業務の傍らでここまでやり切れたのは、AIの力と、それを安心して試せるAzureの環境があったからです。
+この記事が、これからアプリ開発に挑戦してみたい方や、AI駆動開発に関心がある方に届き、少しでも参考になれば嬉しいです。
+
+ボリュームのあるブログになってしまいましたが、最後まで読んでいただきありがとうございました！

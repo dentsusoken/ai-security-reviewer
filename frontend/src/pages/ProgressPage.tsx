@@ -31,7 +31,7 @@ export function ProgressPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
-  const reviewId = id || 'rs_demo_001';
+  const reviewId = id || 'demo-001';
 
   // Extract repo info from location state (passed from NewReviewPage)
   const locationState = location.state as LocationState | undefined;

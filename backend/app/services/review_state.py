@@ -50,6 +50,7 @@ class ReviewStateManager:
         branch: str | None = None,
         perspectives: list[str] | None = None,
         depth: str = "standard",
+        input_type: str = "github",
     ) -> ReviewState:
         """Create a new review state."""
         async with self._lock:
@@ -58,6 +59,7 @@ class ReviewStateManager:
                 status="queued",
                 repo_url=repo_url,
                 branch=branch,
+                input_type=input_type,
                 perspectives=perspectives or ["spec_compliance"],
                 depth=depth,
             )
