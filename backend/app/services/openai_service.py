@@ -62,49 +62,119 @@ IMPORTANT:
 # Depth-specific prompt hints (appended to base prompt)
 DEPTH_PROMPT_HINTS = {
     "quick": """
-**Analysis Depth: QUICK**
+========================================
+ANALYSIS DEPTH: QUICK (HIGH SPEED MODE)
+========================================
 
-Focus on OWASP Top 10 critical issues only.
-- ASVS categories to evaluate: V1 (Architecture), V2 (Authentication), V5 (Validation)
-- Find 3-7 findings if vulnerabilities exist
-- Use concise descriptions (max 2 sentences per finding)
-- Prioritize CRITICAL and HIGH severity issues
+CRITICAL CONSTRAINTS - YOU MUST FOLLOW STRICTLY:
+1. ONLY analyze these 3 ASVS categories: V1 (Architecture), V2 (Authentication), V5 (Validation)
+2. Maximum 5 findings (ABSOLUTELY DO NOT exceed this limit)
+3. Each finding description: 1-2 sentences ONLY
+4. Skip MEDIUM and LOW severity unless they have critical impact
+5. Focus on the most obvious, surface-level critical vulnerabilities
+
+PERSPECTIVE SCORES (return ONLY these 3 categories):
+[V1, V2, V5]
+
+DO NOT analyze: V3, V4, V6, V7, V8, V9, V10, V11, V12, V13, V14
+DO NOT return findings for those categories.
+
+REMEMBER: This is QUICK mode - prioritize SPEED over completeness.
+If you find more than 5 issues, report ONLY the top 5 most critical ones.
 """,
     "standard": """
-**Analysis Depth: STANDARD**
+========================================
+ANALYSIS DEPTH: STANDARD (BALANCED MODE)
+========================================
 
-Comprehensive analysis of common security requirements.
-- ASVS categories to evaluate: V1-V7
-  (Architecture, Authentication, Session, Access Control, Validation, Crypto, Errors)
-- Find 10-20 findings if vulnerabilities exist
-- Include detailed remediation guidance
-- Cover all severity levels (CRITICAL/HIGH/MEDIUM/LOW)
+REQUIREMENTS:
+1. Analyze ASVS categories V1 through V7
+2. Find 8-15 findings if vulnerabilities exist
+3. Include all severity levels (CRITICAL, HIGH, MEDIUM, LOW)
+4. Each finding: detailed description (3-5 sentences)
+5. Include remediation guidance with code examples
+
+PERSPECTIVE SCORES (return these 7):
+[V1, V2, V3, V4, V5, V6, V7]
+
+DO NOT analyze: V8, V9, V10, V11, V12, V13, V14
+
+REMEMBER: This is STANDARD mode - balanced thoroughness.
+Aim for 8-15 findings, not fewer.
 """,
     "detailed": """
-**Analysis Depth: DETAILED**
+========================================
+ANALYSIS DEPTH: DETAILED (EXHAUSTIVE EXPERT MODE)
+========================================
 
-Complete ASVS Level 1+2 compliance check with expert-level depth.
-- ASVS categories to evaluate: V1-V14 (ALL OWASP ASVS categories)
-  V1: Architecture
-  V2: Authentication
-  V3: Session Management
-  V4: Access Control
-  V5: Validation, Sanitization, Encoding
-  V6: Stored Cryptography
-  V7: Error Handling and Logging
-  V8: Data Protection
-  V9: Communication
-  V10: Malicious Code
-  V11: Business Logic
-  V12: File and Resources
-  V13: API and Web Service
-  V14: Configuration
-- Find 20+ findings (be thorough)
-- For each finding, include:
-  * Attack scenario (how an attacker would exploit this)
-  * Expert-level remediation with code examples
-  * Cross-reference CWE/CVE IDs
-- Score perspectives strictly based on completeness
+MANDATORY REQUIREMENTS - ABSOLUTELY MUST FOLLOW:
+1. Analyze ALL 14 ASVS categories: V1 through V14
+2. **YOU MUST FIND AT LEAST 15 findings** (this is a hard requirement)
+3. Consider edge cases, subtle vulnerabilities, defensive coding gaps
+4. For each finding, provide:
+   - Detailed attack scenario (4+ sentences explaining HOW an attacker exploits it)
+   - Step-by-step exploitation example
+   - Multiple remediation approaches with detailed code
+   - CWE references AND business impact analysis
+   - Reference links to OWASP/MITRE documentation
+5. Be EXTREMELY thorough - examine every line carefully
+6. Consider: race conditions, side channels, business logic flaws, timing attacks
+7. Include LOW severity issues that QUICK mode would skip
+8. Look for defense-in-depth gaps
+
+PERSPECTIVE SCORES (return ALL 14 categories):
+[V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14]
+
+CATEGORIES YOU MUST CHECK:
+- V1: Architecture, Design and Threat Modeling
+- V2: Authentication
+- V3: Session Management
+- V4: Access Control
+- V5: Validation, Sanitization and Encoding
+- V6: Stored Cryptography
+- V7: Error Handling and Logging
+- V8: Data Protection
+- V9: Communication
+- V10: Malicious Code
+- V11: Business Logic
+- V12: File and Resources
+- V13: API and Web Service
+- V14: Configuration
+
+EXAMPLES OF SUBTLE ISSUES TO LOOK FOR (be creative and paranoid):
+- Implicit type coercion vulnerabilities
+- Race conditions in async/await code
+- Timing attacks in string comparison operations
+- Information disclosure in error messages and logs
+- Missing security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options)
+- Improper logging of sensitive data (passwords, tokens, PII)
+- Insecure defaults in configuration files
+- Missing rate limiting on authentication endpoints
+- Cryptographic weaknesses (weak algorithms, hardcoded keys, insecure random)
+- Privilege escalation paths through role checking flaws
+- Open redirect vulnerabilities
+- Server-Side Request Forgery (SSRF) opportunities
+- Mass assignment vulnerabilities (over-posting)
+- XML External Entity (XXE) processing
+- Insecure deserialization patterns
+- LDAP/NoSQL/Command injection beyond SQL
+- Insufficient session timeout configuration
+- Missing CSRF tokens
+- Cookie security misconfiguration (Secure, HttpOnly, SameSite)
+- Path traversal opportunities
+- ReDoS (Regular Expression Denial of Service)
+- Prototype pollution (in JavaScript)
+- Insecure dependency usage
+- Default credentials in code or comments
+- Debug code left in production
+- Verbose stack traces exposed to users
+- Missing input length validation
+- Integer overflow/underflow
+- Insecure cross-origin resource sharing
+
+REMEMBER: This is DETAILED mode - QUANTITY AND QUALITY BOTH MATTER.
+You FAIL the task if you find fewer than 15 findings in non-trivial code.
+Be thorough, paranoid, and exhaustive. Think like an attacker.
 """,
 }
 
@@ -244,9 +314,17 @@ MOCK_ANALYSIS_RESULT = {
 
 # Depth-specific max_tokens for OpenAI API
 DEPTH_MAX_TOKENS = {
-    "quick": 2000,
-    "standard": 4000,
-    "detailed": 8000,
+    "quick": 1500,       # Short responses (5 findings max)
+    "standard": 4000,    # Balanced (8-15 findings)
+    "detailed": 16000,   # Large detailed responses (15+ findings)
+}
+
+
+# Depth-specific temperature
+DEPTH_TEMPERATURE = {
+    "quick": 0.1,       # Deterministic, focused on obvious issues
+    "standard": 0.3,    # Balanced
+    "detailed": 0.5,    # More creative, finds subtle issues
 }
 
 
@@ -308,8 +386,9 @@ class OpenAIService:
         depth_hint = DEPTH_PROMPT_HINTS.get(depth, DEPTH_PROMPT_HINTS["standard"])
         system_prompt = SECURITY_REVIEW_PROMPT + "\n" + depth_hint
 
-        # Get depth-specific max_tokens
+        # Get depth-specific settings
         max_tokens = DEPTH_MAX_TOKENS.get(depth, 4000)
+        temperature = DEPTH_TEMPERATURE.get(depth, 0.3)
 
         # Build code content for analysis
         code_content = self._format_code_for_analysis(code_files)
@@ -321,7 +400,7 @@ class OpenAIService:
                     "agent_name": "SpecComplianceAgent",
                     "status": "running",
                     "progress_percent": 30,
-                    "message": f"OWASP ASVS カテゴリを評価中 [{depth}]...",
+                    "message": f"OWASP ASVS カテゴリを評価中 [{depth}] (max_tokens={max_tokens}, temp={temperature})...",
                 },
             )
 
@@ -333,7 +412,7 @@ class OpenAIService:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": code_content},
                 ],
-                temperature=0.3,
+                temperature=temperature,
                 max_tokens=max_tokens,
                 response_format={"type": "json_object"},
             )
@@ -353,6 +432,8 @@ class OpenAIService:
             content = response.choices[0].message.content
             result = json.loads(content)
 
+            # Log findings count for verification
+            findings_count = len(result.get("findings", []))
             if progress_callback:
                 await progress_callback(
                     "agent_progress",
@@ -360,7 +441,7 @@ class OpenAIService:
                         "agent_name": "SpecComplianceAgent",
                         "status": "completed",
                         "progress_percent": 100,
-                        "message": f"解析完了 [{depth}]",
+                        "message": f"解析完了 [{depth}] ({findings_count} findings)",
                     },
                 )
 
