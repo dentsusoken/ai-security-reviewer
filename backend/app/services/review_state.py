@@ -48,6 +48,7 @@ class ReviewStateManager:
         review_id: str,
         repo_url: str,
         branch: str | None = None,
+        input_type: str = "github",
         perspectives: list[str] | None = None,
         depth: str = "standard",
     ) -> ReviewState:
@@ -58,6 +59,7 @@ class ReviewStateManager:
                 status="queued",
                 repo_url=repo_url,
                 branch=branch,
+                input_type=input_type,
                 perspectives=perspectives or ["spec_compliance"],
                 depth=depth,
             )
